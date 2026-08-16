@@ -1,0 +1,83 @@
+{
+  "name": "continue-openrouter",
+  "displayName": "Continue (OpenRouter)",
+  "description": "Autocomplete and NextEdit powered by OpenRouter - bring your own API key and model.",
+  "version": "0.1.0",
+  "publisher": "kawas8516",
+  "private": true,
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kawas8516/AutocompleteNextEditPoc.git",
+    "directory": "extension"
+  },
+  "engines": {
+    "vscode": "^1.80.0",
+    "node": ">=20.19.0"
+  },
+  "categories": ["Programming Languages", "Machine Learning"],
+  "activationEvents": ["onStartupFinished"],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "configuration": {
+      "title": "Continue (OpenRouter)",
+      "properties": {
+        "continue.enableTabAutocomplete": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable inline autocomplete suggestions."
+        },
+        "continue.openRouter.model": {
+          "type": "string",
+          "default": "anthropic/claude-3.5-sonnet",
+          "description": "The OpenRouter model ID used for autocomplete and NextEdit completions, e.g. \"anthropic/claude-3.5-sonnet\", \"qwen/qwen-2.5-coder-32b-instruct\". See https://openrouter.ai/models for the full catalog. Does not include your API key - set that separately via the \"Continue: Set OpenRouter API Key\" command."
+        }
+      }
+    },
+    "commands": [
+      {
+        "command": "continue.setOpenRouterApiKey",
+        "title": "Continue: Set OpenRouter API Key",
+        "category": "Continue"
+      },
+      {
+        "command": "continue.openTabAutocompleteConfigMenu",
+        "title": "Continue: Open Autocomplete Config Menu",
+        "category": "Continue"
+      },
+      {
+        "command": "continue.logAutocompleteOutcome",
+        "title": "Continue: Log Autocomplete Outcome",
+        "category": "Continue"
+      },
+      {
+        "command": "continue.logNextEditOutcomeAccept",
+        "title": "Continue: Accept NextEdit Suggestion",
+        "category": "Continue"
+      },
+      {
+        "command": "continue.logNextEditOutcomeReject",
+        "title": "Continue: Reject NextEdit Suggestion",
+        "category": "Continue"
+      }
+    ]
+  },
+  "scripts": {
+    "build": "node esbuild.js",
+    "build:prod": "node esbuild.js --production",
+    "package": "npm run build:prod && node scripts/prepare-native-deps.js && vsce package --no-dependencies && powershell -ExecutionPolicy Bypass -File scripts/inject-native-deps.ps1",
+    "test": "vitest run --config vitest.config.ts",
+    "test:watch": "vitest --config vitest.config.ts",
+    "typecheck": "tsgo --noEmit"
+  },
+  "dependencies": {
+    "sqlite3": "^5.1.7",
+    "sqlite": "^5.1.1"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.80.0",
+    "@vscode/vsce": "^3.2.1",
+    "esbuild": "^0.24.0",
+    "vitest": "^3.1.4"
+  }
+}

@@ -424,8 +424,3 @@ export class JumpManager {
     );
   }
 }
-
-// Test helper to allow mocking in tests
-export function __setMockJumpManagerInstance(mockInstance: any) {
-  JumpManager._instance = mockInstance;
-}

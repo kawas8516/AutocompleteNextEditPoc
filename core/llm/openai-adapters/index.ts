@@ -2,7 +2,6 @@ import dotenv from "dotenv";
 import { z } from "zod";
 import { AnthropicApi } from "./apis/Anthropic.js";
 import { AzureApi } from "./apis/Azure.js";
-import { BedrockApi } from "./apis/Bedrock.js";
 import { CohereApi } from "./apis/Cohere.js";
 import { CometAPIApi } from "./apis/CometAPI.js";
 import { ContinueProxyApi } from "./apis/ContinueProxy.js";
@@ -16,9 +15,18 @@ import { MoonshotApi } from "./apis/Moonshot.js";
 import { OpenAIApi } from "./apis/OpenAI.js";
 import { OpenRouterApi } from "./apis/OpenRouter.js";
 import { RelaceApi } from "./apis/Relace.js";
-import { VertexAIApi } from "./apis/VertexAI.js";
 import { WatsonXApi } from "./apis/WatsonX.js";
 import { BaseLlmApi } from "./apis/base.js";
+// NOTE: `BedrockApi` (./apis/Bedrock.js) and `VertexAIApi` (./apis/VertexAI.js)
+// are intentionally NOT imported at module scope like the adapters above.
+// They each pull in a heavy npm SDK (@aws-sdk/client-bedrock-runtime +
+// @aws-sdk/credential-providers; google-auth-library) that most consumers of
+// this module never touch. They're `require()`'d lazily inside their own
+// switch case below instead - same synchronous behavior/signature for
+// `constructLlmApi`, just deferred to first actual use, which lets bundlers
+// that mark those packages `external` (e.g. the OpenRouter VS Code
+// extension, which never selects "bedrock"/"vertexai") skip bundling them
+// entirely without breaking any other consumer of `core` as a library.
 import { LLMConfig, OpenAIConfigSchema } from "./types.js";
 
 dotenv.config();
@@ -66,8 +74,11 @@ export function constructLlmApi(config: LLMConfig): BaseLlmApi | undefined {
       return new OpenAIApi(config);
     case "azure":
       return new AzureApi(config);
-    case "bedrock":
+    case "bedrock": {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports -- intentionally lazy, see note above imports
+      const { BedrockApi } = require("./apis/Bedrock.js") as typeof import("./apis/Bedrock.js");
       return new BedrockApi(config);
+    }
     case "cohere":
       return new CohereApi(config);
     case "cometapi":
@@ -88,8 +99,11 @@ export function constructLlmApi(config: LLMConfig): BaseLlmApi | undefined {
       return new InceptionApi(config);
     case "watsonx":
       return new WatsonXApi(config);
-    case "vertexai":
+    case "vertexai": {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports -- intentionally lazy, see note above imports
+      const { VertexAIApi } = require("./apis/VertexAI.js") as typeof import("./apis/VertexAI.js");
       return new VertexAIApi(config);
+    }
     case "llamastack":
       return new LlamastackApi(config);
     case "continue-proxy":

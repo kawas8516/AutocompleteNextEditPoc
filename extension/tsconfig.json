@@ -1,0 +1,14 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "composite": false,
+    "incremental": false,
+    "types": ["vitest/globals", "node", "vscode"],
+    "paths": {
+      "core": ["../core/index.d.ts"],
+      "core/*": ["../core/*"]
+    }
+  },
+  "include": ["src/**/*.ts", "test/**/*.ts", "*.ts", "*.js"],
+  "exclude": ["node_modules", "dist"]
+}

@@ -20,9 +20,9 @@ Practical examples for integrating and using the Autocomplete & NextEdit library
 import {
   CompletionProvider,
   MinimalConfigProvider,
-} from "@continuedev/core/autocomplete";
-import { IDE, ILLM } from "@continuedev/core";
-import OpenAI from "@continuedev/core/llm/llms/OpenAI";
+} from "core/autocomplete";
+import { IDE, ILLM } from "core";
+import OpenAI from "core/llm/llms/OpenAI";
 
 // 1. Create configuration
 const config = new MinimalConfigProvider({
@@ -246,9 +246,9 @@ class RecentEditsTracker {
 ### Basic NextEdit Setup
 
 ```typescript
-import { NextEditProvider } from "@continuedev/core/nextEdit/NextEditProvider";
-import { MinimalConfigProvider } from "@continuedev/core/autocomplete/MinimalConfig";
-import { ILLM, IDE } from "@continuedev/core";
+import { NextEditProvider } from "core/nextEdit/NextEditProvider";
+import { MinimalConfigProvider } from "core/autocomplete/MinimalConfig";
+import { ILLM, IDE } from "core";
 
 // 1. Configuration (shared with autocomplete)
 const config = new MinimalConfigProvider();
@@ -341,7 +341,7 @@ async function requestFullFileEdit(
 ### NextEdit with User Confirmation
 
 ```typescript
-import { DiffLine } from "@continuedev/core";
+import { DiffLine } from "core";
 
 class NextEditManager {
   async requestAndConfirmEdit(
@@ -558,7 +558,7 @@ import * as vscode from 'vscode';
 import {
   CompletionProvider,
   MinimalConfigProvider
-} from '@continuedev/core/autocomplete';
+} from 'core/autocomplete';
 
 class VSCodeAutocompleteIntegration
   implements vscode.InlineCompletionItemProvider
@@ -679,7 +679,7 @@ export function activate(context: vscode.ExtensionContext) {
 ### Simple IDE Implementation
 
 ```typescript
-import { IDE, Position, Range, FileEdit } from "@continuedev/core";
+import { IDE, Position, Range, FileEdit } from "core";
 import * as fs from "fs";
 import * as path from "path";
 
@@ -795,7 +795,7 @@ class SimpleFileSystemIDE implements IDE {
 ### Streaming Completions with Progress
 
 ```typescript
-import { CompletionStreamer } from '@continuedev/core/autocomplete/generation/CompletionStreamer';
+import { CompletionStreamer } from 'core/autocomplete/generation/CompletionStreamer';
 
 class ProgressiveCompletionDisplay {
   private currentCompletion = '';
@@ -989,7 +989,7 @@ class ResilientCompletionProvider {
 ### Unit Testing Autocomplete
 
 ```typescript
-import { CompletionProvider } from "@continuedev/core/autocomplete";
+import { CompletionProvider } from "core/autocomplete";
 import { describe, it, expect, vi } from "vitest";
 
 describe("CompletionProvider", () => {

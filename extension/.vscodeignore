@@ -1,0 +1,21 @@
+src/**
+test/**
+scripts/**
+vitest.config.ts
+esbuild.js
+tsconfig.json
+dist/**/*.map
+.impeccable/**
+**/*.ts.map
+.repro-scratch/**
+
+# Packaged with `vsce package --no-dependencies` (its automatic dependency
+# walk gets confused by npm workspace hoisting - see decision.md). node_modules
+# is excluded by default under --no-dependencies; explicitly un-ignore just
+# the 3 packages sqlite3 actually needs at runtime (copied here by
+# scripts/prepare-native-deps.js before packaging).
+!node_modules/**
+node_modules/*
+!node_modules/sqlite3/**
+!node_modules/bindings/**
+!node_modules/file-uri-to-path/**

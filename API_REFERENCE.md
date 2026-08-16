@@ -455,7 +455,7 @@ Pre-built adapter for OpenAI and OpenAI-compatible APIs.
 **Location**: [`core/llm/llms/OpenAI.ts`](core/llm/llms/OpenAI.ts)
 
 ```typescript
-import OpenAI from "@continuedev/core/llm/llms/OpenAI";
+import OpenAI from "core/llm/llms/OpenAI";
 
 const llm = new OpenAI({
   model: "gpt-4",
@@ -486,7 +486,7 @@ interface OpenAIOptions {
 To create a custom LLM adapter, implement the `ILLM` interface:
 
 ```typescript
-import { ILLM, CompletionOptions } from "@continuedev/core";
+import { ILLM, CompletionOptions } from "core";
 
 class CustomLLM implements ILLM {
   uniqueId = "custom-llm";
@@ -671,9 +671,9 @@ interface FileEdit {
 import {
   CompletionProvider,
   MinimalConfigProvider,
-} from "@continuedev/core/autocomplete";
-import { IDE, ILLM, Position } from "@continuedev/core";
-import OpenAI from "@continuedev/core/llm/llms/OpenAI";
+} from "core/autocomplete";
+import { IDE, ILLM, Position } from "core";
+import OpenAI from "core/llm/llms/OpenAI";
 
 // 1. Implement IDE interface
 class MyIDE implements IDE {

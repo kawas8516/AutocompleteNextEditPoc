@@ -3,14 +3,19 @@ const tsparser = require("@typescript-eslint/parser");
 
 module.exports = [
   {
-    ignores: ["**/testWorkspaceDir/**", "**/__fixtures__/**", "**/node_modules/**"],
+    ignores: [
+      "**/testWorkspaceDir/**",
+      "**/__fixtures__/**",
+      "**/node_modules/**",
+      "**/dist/**",
+    ],
   },
   {
     files: ["**/*.ts", "**/*.tsx"],
     languageOptions: {
       parser: tsparser,
       parserOptions: {
-        project: "./tsconfig.json",
+        project: ["./tsconfig.json", "./extension/tsconfig.json"],
       },
       globals: {
         console: "readonly",

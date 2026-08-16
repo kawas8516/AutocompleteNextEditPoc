@@ -386,7 +386,21 @@ function hypothenuse(a, b) {
   },
 };
 
-export function getTemplateForModel(model: string): AutocompleteTemplate {
+export function getTemplateForModel(
+  model: string,
+  providerName?: string,
+): AutocompleteTemplate {
+  // OpenRouter only ever speaks chat-completions (no FIM/raw-completions
+  // endpoint), regardless of which upstream model is selected - vendor
+  // prefixes in OpenRouter model IDs (e.g. "qwen/qwen-2.5-coder-32b-instruct",
+  // "mistralai/codestral-2501") can otherwise accidentally match the
+  // substring checks below and select a FIM template meant for a raw
+  // completions endpoint OpenRouter doesn't expose. Force the chat-based
+  // hole-filler template unconditionally for this provider.
+  if (providerName === "openrouter") {
+    return holeFillerTemplate;
+  }
+
   const lowerCaseModel = model.toLowerCase();
 
   // if (lowerCaseModel.includes("starcoder2")) {

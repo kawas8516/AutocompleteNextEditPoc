@@ -117,6 +117,30 @@ grep -n "fromStatic" core/llm/openai-adapters/apis/Bedrock.ts
 # (No results after removal - previously only on import line)
 ```
 
+### sqlite3, sqlite (in extension/package.json)
+
+**Status:** REQUIRED - Must be kept
+
+**Location:** `extension/package.json` `dependencies`
+
+**Why knip flags these "unused":** `extension/src/extension.ts` never directly imports `sqlite3`/`sqlite` - they're pulled in transitively via `core/autocomplete/util/AutocompleteLruCache.ts`, several layers deep, and knip's entry points (`knip.json`) don't include `extension/src/extension.ts` at all (only `core/`'s own entry points).
+
+**Why they're actually required:** `sqlite3` is marked `external` in `extension/esbuild.js` (its native binding breaks if bundled into a single file - see `decision.md`) and must be physically present as real `node_modules` content for the packaged extension to `require("sqlite3")` at runtime. `extension/package.json` declaring it as a dependency, plus `extension/scripts/prepare-native-deps.js` copying it (and its own runtime deps `bindings`/`file-uri-to-path`) into `extension/node_modules` before packaging, is how that's satisfied. `sqlite` (the pure-JS wrapper) stays bundled by esbuild but is declared for documentation accuracy.
+
+**Verification:** `npm run package --workspace=extension` produces a working `.vsix` with `sqlite3` inside; extracting it and `require()`-ing `sqlite3` from the extracted layout works (verified manually during the cleanup pass that added this entry).
+
+## Exports
+
+### BedrockApi, VertexAIApi
+
+**Status:** REQUIRED - Must be kept
+
+**Location:** `core/llm/openai-adapters/apis/Bedrock.ts:39`, `core/llm/openai-adapters/apis/VertexAI.ts:25`
+
+**Why knip flags these "unused exports":** `core/llm/openai-adapters/index.ts`'s `constructLlmApi()` used to `import` both classes at module top level. They're now `require()`'d lazily inside their own switch case (`"bedrock"`/`"vertexai"`) instead, specifically so bundlers (like the OpenRouter VS Code extension's `esbuild.js`) that mark `@aws-sdk/client-bedrock-runtime`/`@aws-sdk/credential-providers`/`google-auth-library` `external` can skip bundling those heavy SDKs entirely, since this extension's runtime never reaches those cases. A dynamic `require()` call isn't visible to knip's static export-usage analysis, so it now reports these two classes as unused even though they're genuinely constructed whenever `constructLlmApi({provider: "bedrock" | "vertexai"})` is called by any other consumer of `core` as a library.
+
+**Verification:** `grep -n "require(\"./apis/Bedrock.js\")\|require(\"./apis/VertexAI.js\")" core/llm/openai-adapters/index.ts` shows both lazy requires in place.
+
 ## Unresolved Imports (Fixed)
 
 ### node-fetch-patch.js JSDoc Type References

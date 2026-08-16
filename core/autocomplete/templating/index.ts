@@ -20,8 +20,11 @@ import { getSnippets } from "./filtering";
 import { formatSnippets } from "./formatting";
 import { getStopTokens } from "./getStopTokens";
 
-function getTemplate(helper: HelperVars): AutocompleteTemplate {
-  return getTemplateForModel(helper.modelName);
+function getTemplate(
+  helper: HelperVars,
+  providerName?: string,
+): AutocompleteTemplate {
+  return getTemplateForModel(helper.modelName, providerName);
 }
 
 /** Consolidates shared setup between renderPrompt and renderPromptWithTokenLimit. */
@@ -29,10 +32,12 @@ function preparePromptContext({
   snippetPayload,
   workspaceDirs,
   helper,
+  providerName,
 }: {
   snippetPayload: SnippetPayload;
   workspaceDirs: string[];
   helper: HelperVars;
+  providerName?: string;
 }): {
   prefix: string;
   suffix: string;
@@ -51,8 +56,10 @@ function preparePromptContext({
 
   const reponame = getUriPathBasename(workspaceDirs[0] ?? "myproject");
 
-  const { template, compilePrefixSuffix, completionOptions } =
-    getTemplate(helper);
+  const { template, compilePrefixSuffix, completionOptions } = getTemplate(
+    helper,
+    providerName,
+  );
 
   const snippets = getSnippets(helper, snippetPayload);
 
@@ -193,7 +200,12 @@ export function renderPromptWithTokenLimit({
     compilePrefixSuffix,
     completionOptions,
     snippets,
-  } = preparePromptContext({ snippetPayload, workspaceDirs, helper });
+  } = preparePromptContext({
+    snippetPayload,
+    workspaceDirs,
+    helper,
+    providerName: llm?.providerName,
+  });
 
   // We'll mutate prefix/suffix during pruning, so copy them.
   let prefix = initialPrefix;
