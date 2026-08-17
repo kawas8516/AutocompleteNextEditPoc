@@ -361,6 +361,141 @@ programmatically via `contributes.configurationDefaults` — that's a global edi
 affecting every language server, not scoped to this extension; silently overriding it on the
 user's behalf would be a surprising side effect on their whole editor setup.
 
+## D19 — no predictions rendered at all: five stacked defects, found by live testing
+
+Live testing revealed that **no prediction of any kind had ever rendered** — and, importantly,
+that my earlier D17-era claim that "autocomplete works end-to-end" was **wrong**. I had read the
+consistent ~356-378 ms `provider DONE` timings in the ext-host log as OpenRouter network latency.
+They were the **350 ms debounce timer** (`debounceDelay: 350`, `core/util/parameters.ts:8`) firing
+and then bailing out. No LLM call had ever succeeded. Recorded here because the mistake was
+methodological: a plausible-looking number was treated as evidence without checking what else
+produces that number.
+
+**The chain, all verified in source:**
+
+1. `extension/src/extension.ts` called `provider.activateNextEdit()` **unconditionally** — my bug,
+   introduced when the extension shell was first written (D10/D11).
+2. `core/nextEdit/NextEditProvider.ts` gates on `modelSupportsNextEdit()`
+   (`core/llm/autodetect.ts`), true **only** for model names containing `mercury-coder` or
+   `instinct`. The default `anthropic/claude-3.5-sonnet` fails it.
+3. `core/vscode-test-harness/src/autocomplete/completionProvider.ts` then recursively re-invokes
+   itself; on the recursion `chainExists` is true, the prefetch queue is empty (it's never filled
+   when `usingFullFileDiff: true`), so the chain is deleted and `undefined` returned.
+4. Plain autocomplete lives in the `else` branch of `if (this.isNextEditActive)` — therefore
+   **unreachable** for every model.
+5. Even with that fixed, `modelTimeout: 150` (ms) crippled results:
+   `core/autocomplete/filtering/streamTransforms/StreamTransformPipeline.ts` passes
+   `helper.options.modelTimeout` into `showWhateverWeHaveAtXMs` — **the wrong option**; the
+   `showWhateverWeHaveAtXMs: 300` config value is dead, read by nothing. `lineStream.ts` breaks as
+   soon as `elapsed > ms && firstNonWhitespaceLineYielded`, and since OpenRouter's time-to-first-token
+   alone exceeds 150 ms, every completion was truncated to exactly one line. Separately
+   `CompletionStreamer.ts` hard-cancels the stream at `modelTimeout * 2.5` = 375 ms.
+
+**Fixes** (none of them touching the protected `core/autocomplete/**` / `core/nextEdit/**` trees):
+
+- **NextEdit activation is now conditional** on the same `modelSupportsNextEdit()` check
+  `NextEditProvider` itself uses, so the two can't disagree, plus a `continue.nextEdit.enabled`
+  setting (`auto` | `on` | `off`). Deliberately **not** implemented by forcing
+  `capabilities.nextEdit = true` on an arbitrary model: `NextEditProviderFactory.createProvider()`
+  *throws* for anything but Mercury/Instinct, that throw is swallowed by `NextEditProvider`'s
+  catch, and the result would be silent `undefined` plus an error toast per keystroke.
+- **`modelTimeout` overridden to 5000** from `extension.ts` via `MinimalConfigProvider`'s existing
+  `tabAutocompleteOptions`, rather than patching the protected `StreamTransformPipeline`. One value
+  fixes both timers since both read it. Exposed as `continue.modelTimeout`. Precedent: the repo's
+  own harness fixture already uses `modelTimeout: 5000`.
+- **`contributes.keybindings` added** — there were none at all, so `continue.nextEditWindow.accept/hideNextEditSuggestion`
+  and `continue.acceptJump`/`rejectJump` (registered at runtime, gated on the `nextEditWindowActive`
+  and `continue.jumpDecorationVisible` context keys) were unreachable; Tab fell through to indent.
+
+Verified live afterwards: `provider DONE after 1397ms` — a real network call, versus the previous
+invariant ~360 ms debounce-and-bail.
+
+**Debugging note worth keeping:** `console.log`/`console.error` from the bundled extension does
+**not** reach `exthost.log`. Diagnostics added that way came back completely empty, which is what
+misled the first round of investigation. (The D17 tree-sitter `RuntimeError` reached the log via
+the extension host's uncaught-error handler, not via `console.*`.) Use a `vscode.OutputChannel` or
+`fs.appendFileSync` for in-editor debugging instead.
+
+## D20 — `CodeRenderer` reimplemented without dependencies
+
+`core/util/CodeRenderer.ts` was a stub returning `"data:image/svg+xml;base64,"` — a valid URI with
+a **zero-byte payload**. `NextEditWindowManager` feeds it to a `before.contentIconPath` decoration,
+so NextEdit's non-FIM (multi-line edit) preview was silently invisible: no error, no log, nothing
+drawn. Git history shows a real 445-line implementation was deleted in `64363ba75`; it used
+**shiki + `@shikijs/transformers` + jsdom** to render syntax-highlighted HTML into SVG.
+
+Reverting that would mean re-adding three heavy dependencies, directly undoing the
+minimal-footprint work of D13/D15. Instead the renderer is now **hand-rolled SVG with zero new
+dependencies**, following the working precedent already in this repo —
+`JumpManager._createSvgJumpIcon()` builds its SVG with a template literal and `Buffer.from(...).toString("base64")`
+("Create SVG manually without svg-builder dependency").
+
+It renders one `<text>` per line from the `newDiffLines: DiffLine[]` it already receives, colored
+and prefixed by diff type (`new` → green `+`, `old` → red `-`, `same` → grey), on a rounded
+translucent panel, with local XML escaping (the original's `escapeForSVG` helper no longer exists).
+All of `NextEditWindowManager`'s sizing/positioning/z-index plumbing is untouched — this is a
+single-function replacement. **Syntax highlighting is the one thing lost**, which is an acceptable
+trade for a preview tooltip whose actual job is showing *what changed*.
+
+Verified by rendering a sample diff: 646 bytes of well-formed SVG with correct escaping of `<`,
+`>`, `&` and quotes, versus 0 bytes before.
+
+## D21 — status bar menu, and the three defects that had to be fixed to make it work
+
+The status bar item always pointed at `continue.openTabAutocompleteConfigMenu`, but that command
+was a stub: a one-option QuickPick that flipped `enableTabAutocomplete`. Replaced with a
+Copilot-style menu (`extension/src/statusBarMenu.ts`): autocomplete toggle, NextEdit toggle,
+change API key, change model, reset settings, reset cache. Built with `showQuickPick` over
+`QuickPickItem[]` (separators are supported there since VS Code 1.64, and `engines.vscode` is
+`^1.80.0`) rather than `createQuickPick`, so VS Code owns disposal and the menu can't become a
+second instance of the leak below.
+
+Building it surfaced three pre-existing defects, all of which would have made the menu appear
+broken:
+
+1. **Toggles wouldn't take effect.** The `onDidChangeConfiguration` handler in `activate()`
+   watched only `continue.openRouter.model`, but `nextEdit.enabled` and `modelTimeout` are read
+   once when the provider is constructed. Broadened the watcher to all three.
+   `enableTabAutocomplete` is deliberately excluded — it's read live per-request via the status
+   bar gate, so rebuilding the provider for it would be wasted work.
+
+2. **Unbounded listener leak.** `setupStatusBar()` registered a *new*
+   `onDidChangeConfiguration` listener on every call. It runs twice per completion request (once
+   on entry at `completionProvider.ts:423`, once via `stopStatusBarLoading`'s 100 ms timer), and
+   the listener itself re-entered `setupStatusBar` — so every config change **doubled** the live
+   count. Superlinear, not merely linear. The `StatusBarItem` was never disposed either. Fixed
+   with a new `initStatusBar(): vscode.Disposable` that registers the listener exactly once and
+   owns teardown of the item, the listener, and the pending timer.
+
+   Important subtlety: that listener is **load-bearing, not incidental**. Because
+   `provideInlineCompletionItems` gates on `getStatusBarStatus()` rather than reading the setting,
+   the leaked listener was the only thing making the `enableTabAutocomplete` setting work at all.
+   "Fixing" the leak by deleting the listener would have silently broken the toggle — hence
+   register-once rather than remove, with a regression test asserting the toggle still applies
+   afterwards.
+
+3. **`enableTabAutocomplete` ignored at startup.** Nothing read the setting during `activate()`;
+   the status bar was set to `Enabled` unconditionally once a provider registered. A user who
+   turned autocomplete off got it silently re-enabled on every window reload — it only *seemed*
+   to work because the leaked listener caught later changes. `registerCompletionProvider` now
+   honours the saved value.
+
+**Reset semantics** (user-chosen): two separate actions rather than one "reset all", and **neither
+touches the API key** — it has its own Change action, and silently discarding a validated
+credential during a "reset settings" would be a surprising loss. Reset Settings clears both Global
+*and* Workspace scopes, since a workspace override would otherwise shadow the reset and look like
+a no-op.
+
+**Reset Cache** can't call into `AutocompleteLruCache` — it exposes no clear method and lives in
+the protected `core/autocomplete/**` tree. Instead the menu opens the same sqlite file (path from
+the unprotected `core/util/paths.ts`) and runs `DELETE FROM cache`. Deleting the *file* is not an
+option: the running provider holds an open handle. WAL mode (already enabled by the cache) makes
+the second connection safe and the delete immediately visible. Uses the `sqlite`/`sqlite3` deps
+already added in D12 — no new dependencies.
+
+Both the leak fix and the NextEdit gating were **mutation-tested**: reintroducing each original
+bug makes the corresponding tests fail, so the coverage is proven rather than assumed.
+
 ## Assumptions & known limitations
 
 - `extension/package.json`'s `publisher` is `"kawas8516"`, matching this fork's GitHub account
@@ -378,6 +513,16 @@ user's behalf would be a surprising side effect on their whole editor setup.
   VS Code's process teardown handles the rest.
 - Multi-platform `sqlite3` binaries and real `.vsix`-install verification are out of reach in
   this sandboxed environment (D14) — treat as required manual steps before distributing a build.
+- NextEdit against `inception/mercury-coder` **via OpenRouter** is unverified end-to-end. Model-name
+  matching satisfies all three gates (`modelSupportsNextEdit`, `NextEditProviderFactory`,
+  `getTemplateForModel`), but Continue's native `InceptionApi` routes NextEdit to a dedicated
+  `edit/completions` endpoint using a `<|!@#IS_NEXT_EDIT!@#|>` sentinel, which OpenRouter does not
+  expose — our `OpenRouter` class sends plain chat-completions instead. Whether Mercury's
+  OpenRouter listing honours the same prompt contract has not been tested.
+- The default model is a **free-tier** model (`nvidia/nemotron-3-nano-30b-a3b:free`) so the
+  extension works on a free OpenRouter account. Free models are rate-limited (commonly ~20
+  req/min), and autocomplete is a high-frequency caller — sustained typing can trigger 429s, which
+  surface via D9's error classification. Users with credits should pick a stronger model.
 - The packaged `.vsix` includes the tree-sitter core runtime (`tree-sitter.wasm`, D17) but not
   the per-language grammar files (`tree-sitter-wasms`, D15) — the parser engine initializes
   cleanly, but AST-based import-context enrichment for any given language is still local-dev-only

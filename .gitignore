@@ -179,3 +179,4 @@ keys
 
 # TypeScript build cache
 *.tsbuildinfo
+compilation.md

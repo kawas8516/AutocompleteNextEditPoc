@@ -23,13 +23,14 @@ All from the repo root unless noted. Each should finish in seconds.
    Confirms OpenRouter models always get the chat-based hole-filler template — the regression
    this project exists to prevent (see `decision.md` D3). 5 tests.
 
-3. **Extension activation & wiring**
+3. **Extension activation, wiring & status bar menu**
    ```
    npm run test:extension
    ```
    Confirms: commands register with no key present, no stale provider registers itself, key
-   validation flow (accept/reject/dismiss), and that a stored key + model correctly constructs
-   an `OpenRouter` LLM and registers the completion provider. 11 tests.
+   validation flow (accept/reject/dismiss), a stored key + model correctly constructs an
+   `OpenRouter` LLM and registers the completion provider, NextEdit activation gating (D19), and
+   every status bar menu action including both resets (D21). 40 tests across two files.
 
 4. **OpenRouter error classification**
    ```
@@ -145,7 +146,14 @@ Not automatable from the CLI — do this after any change to `extension/src/exte
 7. If testing NextEdit: select a NextEdit-capable model available via OpenRouter (e.g.
    `inception/mercury-coder`) and confirm NextEdit suggestions render and can be
    accepted/rejected via the usual Tab/Esc flow.
-8. Check the ext-host log for silent errors (`Help > Toggle Developer Tools` isn't enough — use
+8. **Check `provider DONE` timings in the ext-host log** — this is the single most diagnostic
+   signal. `grep -o "provider DONE after [0-9]*ms"` on the exthost log:
+   - Timings pinned at a near-constant ~360 ms mean the request is **bailing out at the 350 ms
+     debounce**, not calling the model. That's what the D19 bug looked like.
+   - Variable timings well above that (e.g. 1400 ms) mean a real network call is happening.
+   Do not assume a plausible-looking latency implies a successful API call — check what else
+   produces that number first.
+9. Check the ext-host log for silent errors (`Help > Toggle Developer Tools` isn't enough — use
    the raw log file under `<user-data-dir>/logs/<timestamp>/window*/exthost/exthost.log`, or
    `Developer: Show Logs... > Extension Host` from the command palette) after the first
    activation, and grep for `[error]`. This is the step that actually caught D17
@@ -168,6 +176,13 @@ Documented rather than silently missing:
   reading the ext-host log caught it. No automated check currently guards against this class of
   regression (a future build-script change that stops copying the file) — step 8 of the manual
   checklist above is the only safety net for it right now.
+- `console.log`/`console.error` from inside the bundled extension does **not** reach
+  `exthost.log` (verified — diagnostics added that way came back completely empty, which misled a
+  whole round of D19 debugging). Use a `vscode.OutputChannel` or `fs.appendFileSync` for in-editor
+  diagnostics instead. Nothing enforces this; it's a trap worth remembering.
+- The NextEdit rendering paths (FIM ghost text, non-FIM SVG window, jump prompt) have no automated
+  coverage — they need a real editor. `extension/test/extension.vitest.ts` covers the *activation
+  gating* decision (D19) but not what gets drawn.
 - VS Code suggest-widget-vs-inline-completion interaction (D18) — inline completions get
   suppressed by VS Code itself when its own IntelliSense dropdown has a selection (confirmed live:
   typing a keyword like `function` triggers this). This is an editor-level UI interaction, not

@@ -1,20 +1,26 @@
 import { CompletionProvider } from "core/autocomplete/CompletionProvider";
 import { MinimalConfigProvider } from "core/autocomplete/MinimalConfig";
+import { modelSupportsNextEdit } from "core/llm/autodetect";
 import { OpenRouter } from "core/llm/llms/OpenRouter";
 import { NextEditLoggingService } from "core/nextEdit/NextEditLoggingService";
+import { DEFAULT_AUTOCOMPLETE_OPTS } from "core/util/parameters";
 import { JumpManager } from "core/vscode-test-harness/src/activation/JumpManager";
 import { NextEditWindowManager } from "core/vscode-test-harness/src/activation/NextEditWindowManager";
 import { ContinueCompletionProvider } from "core/vscode-test-harness/src/autocomplete/completionProvider";
 import {
+  initStatusBar,
   setupStatusBar,
   StatusBarStatus,
 } from "core/vscode-test-harness/src/autocomplete/statusBar";
 import * as vscode from "vscode";
 
+import { showStatusBarMenu } from "./statusBarMenu";
 import { VsCodeIde } from "./VsCodeIde";
 
 export const OPENROUTER_API_KEY_SECRET = "continue.openRouterApiKey";
 const OPENROUTER_AUTH_KEY_URL = "https://openrouter.ai/api/v1/auth/key";
+/** Kept in sync with the default in `extension/package.json`. */
+const DEFAULT_MODEL = "nvidia/nemotron-3-nano-30b-a3b:free";
 
 /**
  * Validates an OpenRouter API key by calling OpenRouter's cheap "auth/key"
@@ -89,24 +95,17 @@ function registerSetApiKeyCommand(
   );
 }
 
-function registerConfigMenuCommand(): vscode.Disposable {
+/**
+ * The status bar item's click target (see `statusBar.ts`, which sets
+ * `statusBarItem.command` to this id).
+ */
+function registerConfigMenuCommand(
+  context: vscode.ExtensionContext,
+): vscode.Disposable {
   return vscode.commands.registerCommand(
     "continue.openTabAutocompleteConfigMenu",
-    async () => {
-      const config = vscode.workspace.getConfiguration("continue");
-      const enabled = config.get<boolean>("enableTabAutocomplete", true);
-      const choice = await vscode.window.showQuickPick(
-        [enabled ? "Disable autocomplete" : "Enable autocomplete"],
-        { title: "Continue Autocomplete" },
-      );
-      if (choice) {
-        await config.update(
-          "enableTabAutocomplete",
-          !enabled,
-          vscode.ConfigurationTarget.Global,
-        );
-      }
-    },
+    () =>
+      showStatusBarMenu(context, OPENROUTER_API_KEY_SECRET, DEFAULT_MODEL),
   );
 }
 
@@ -142,6 +141,30 @@ function registerLoggingCommands(): vscode.Disposable[] {
 }
 
 /**
+ * Decides whether the NextEdit experience should be turned on for the
+ * currently-selected model.
+ *
+ * `"auto"` (the default) defers to `modelSupportsNextEdit`, the same check
+ * `NextEditProvider` itself uses, so the two can't disagree. `"on"` is an
+ * escape hatch for a NextEdit-capable model this build doesn't recognize by
+ * name - it cannot make an arbitrary chat model work, because the prompt
+ * templates and provider factory are model-specific.
+ */
+function shouldEnableNextEdit(
+  config: vscode.WorkspaceConfiguration,
+  llm: OpenRouter,
+): boolean {
+  const setting = config.get<string>("nextEdit.enabled", "auto");
+  if (setting === "on") {
+    return true;
+  }
+  if (setting === "off") {
+    return false;
+  }
+  return modelSupportsNextEdit(llm.capabilities, llm.model, llm.title);
+}
+
+/**
  * Builds the `MinimalConfigProvider` + `ContinueCompletionProvider` pair and
  * registers the inline completion provider, using whatever OpenRouter API
  * key/model are configured *right now*. `MinimalConfigProvider` captures its
@@ -159,13 +182,24 @@ async function registerCompletionProvider(
     return undefined;
   }
 
-  const model = vscode.workspace
-    .getConfiguration("continue")
-    .get<string>("openRouter.model", "anthropic/claude-3.5-sonnet");
+  const config = vscode.workspace.getConfiguration("continue");
+  const model = config.get<string>("openRouter.model", DEFAULT_MODEL);
 
   const llm = new OpenRouter({ apiKey, model });
 
   const configProvider = new MinimalConfigProvider({
+    // The upstream default is `modelTimeout: 150` (ms), which was tuned for
+    // local/self-hosted models. It is far too aggressive for a hosted API:
+    // `StreamTransformPipeline` feeds this same value to
+    // `showWhateverWeHaveAtXMs`, which stops the stream as soon as one
+    // non-empty line has been yielded AND the budget is exceeded. Since
+    // OpenRouter's time-to-first-token alone typically exceeds 150ms, that
+    // truncated every completion to a single line. It also drives
+    // `CompletionStreamer`'s hard cancel at `modelTimeout * 2.5`.
+    tabAutocompleteOptions: {
+      ...DEFAULT_AUTOCOMPLETE_OPTS,
+      modelTimeout: config.get<number>("modelTimeout", 5000),
+    },
     modelsByRole: { autocomplete: [llm] },
     selectedModelByRole: { autocomplete: llm },
   });
@@ -175,14 +209,32 @@ async function registerCompletionProvider(
     ide,
     /* usingFullFileDiff */ true,
   );
-  provider.activateNextEdit();
+
+  // NextEdit is a fine-tuned-model feature, not a general capability:
+  // `NextEditProviderFactory.createProvider()` throws for anything that isn't
+  // Mercury Coder or Instinct, and `NextEditPromptEngine` has templates only
+  // for those two. Activating it for a general chat model (the default is
+  // Claude) makes `NextEditProvider` bail out, and because plain autocomplete
+  // lives in the `else` branch of that check, it would never run at all.
+  // So only turn it on when the selected model can actually serve it.
+  if (shouldEnableNextEdit(config, llm)) {
+    provider.activateNextEdit();
+  }
 
   const registration = vscode.languages.registerInlineCompletionItemProvider(
     { pattern: "**" },
     provider,
   );
 
-  setupStatusBar(StatusBarStatus.Enabled);
+  // Honour the user's saved preference rather than force-enabling. The
+  // completion gate reads the status bar state, not the setting, so setting
+  // `Enabled` unconditionally here would silently re-enable autocomplete on
+  // every window reload for anyone who had turned it off.
+  setupStatusBar(
+    config.get<boolean>("enableTabAutocomplete", true)
+      ? StatusBarStatus.Enabled
+      : StatusBarStatus.Disabled,
+  );
 
   return registration;
 }
@@ -191,8 +243,9 @@ export async function activate(context: vscode.ExtensionContext) {
   const ide = new VsCodeIde();
 
   context.subscriptions.push(
+    initStatusBar(),
     registerSetApiKeyCommand(context),
-    registerConfigMenuCommand(),
+    registerConfigMenuCommand(context),
     ...registerLoggingCommands(),
   );
 
@@ -217,7 +270,16 @@ export async function activate(context: vscode.ExtensionContext) {
       }
     }),
     vscode.workspace.onDidChangeConfiguration((e) => {
-      if (e.affectsConfiguration("continue.openRouter.model")) {
+      // These three are read once, when the provider is constructed, so a
+      // change only takes effect if the provider is rebuilt.
+      // `continue.enableTabAutocomplete` is deliberately absent: it's read
+      // live on every request via the status bar gate, so rebuilding for it
+      // would be wasted work.
+      if (
+        e.affectsConfiguration("continue.openRouter.model") ||
+        e.affectsConfiguration("continue.nextEdit.enabled") ||
+        e.affectsConfiguration("continue.modelTimeout")
+      ) {
         void refresh();
       }
     }),

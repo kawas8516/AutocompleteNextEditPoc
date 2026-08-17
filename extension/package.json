@@ -29,8 +29,25 @@
         },
         "continue.openRouter.model": {
           "type": "string",
-          "default": "anthropic/claude-3.5-sonnet",
-          "description": "The OpenRouter model ID used for autocomplete and NextEdit completions, e.g. \"anthropic/claude-3.5-sonnet\", \"qwen/qwen-2.5-coder-32b-instruct\". See https://openrouter.ai/models for the full catalog. Does not include your API key - set that separately via the \"Continue: Set OpenRouter API Key\" command."
+          "default": "nvidia/nemotron-3-nano-30b-a3b:free",
+          "description": "The OpenRouter model ID used for autocomplete and NextEdit completions. Defaults to a small free-tier model so the extension works on a free OpenRouter account without credits. Autocomplete fires on nearly every keystroke, so a small, fast model usually feels better than a large, slow one. Paid models (e.g. \"anthropic/claude-3.5-sonnet\") give higher quality but require credits on your key. See https://openrouter.ai/models for the full catalog. Your API key is set separately via the \"Continue: Set OpenRouter API Key\" command."
+        },
+        "continue.nextEdit.enabled": {
+          "type": "string",
+          "enum": ["auto", "on", "off"],
+          "default": "auto",
+          "enumDescriptions": [
+            "Enable NextEdit only when the selected model supports it (currently Mercury Coder and Instinct). Otherwise use standard inline autocomplete.",
+            "Always enable NextEdit. Only meaningful for a NextEdit-capable model - a general chat model will produce no suggestions at all.",
+            "Never enable NextEdit; always use standard inline autocomplete."
+          ],
+          "description": "Controls the NextEdit multi-location edit prediction feature. NextEdit requires a fine-tuned model (Mercury Coder or Instinct); standard inline autocomplete works with any model."
+        },
+        "continue.modelTimeout": {
+          "type": "number",
+          "default": 5000,
+          "minimum": 500,
+          "description": "Milliseconds to allow a completion to keep streaming. The upstream default (150) was tuned for local models and truncates hosted-API completions to a single line. Raise this if you use a slow model and see cut-off suggestions."
         }
       }
     },
@@ -59,6 +76,48 @@
         "command": "continue.logNextEditOutcomeReject",
         "title": "Continue: Reject NextEdit Suggestion",
         "category": "Continue"
+      },
+      {
+        "command": "continue.nextEditWindow.acceptNextEditSuggestion",
+        "title": "Continue: Accept NextEdit Window Suggestion",
+        "category": "Continue"
+      },
+      {
+        "command": "continue.nextEditWindow.hideNextEditSuggestion",
+        "title": "Continue: Dismiss NextEdit Window Suggestion",
+        "category": "Continue"
+      },
+      {
+        "command": "continue.acceptJump",
+        "title": "Continue: Accept Jump to Next Edit Location",
+        "category": "Continue"
+      },
+      {
+        "command": "continue.rejectJump",
+        "title": "Continue: Reject Jump to Next Edit Location",
+        "category": "Continue"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "continue.nextEditWindow.acceptNextEditSuggestion",
+        "key": "tab",
+        "when": "editorTextFocus && nextEditWindowActive"
+      },
+      {
+        "command": "continue.nextEditWindow.hideNextEditSuggestion",
+        "key": "escape",
+        "when": "editorTextFocus && nextEditWindowActive"
+      },
+      {
+        "command": "continue.acceptJump",
+        "key": "tab",
+        "when": "editorTextFocus && continue.jumpDecorationVisible"
+      },
+      {
+        "command": "continue.rejectJump",
+        "key": "escape",
+        "when": "editorTextFocus && continue.jumpDecorationVisible"
       }
     ]
   },

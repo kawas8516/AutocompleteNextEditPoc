@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi, type Mock } from "vitest";
 
 // --- vscode mock -----------------------------------------------------------
 // extension.ts's job is orchestration (config/secrets -> LLM -> provider
@@ -37,11 +37,14 @@ vi.mock("vscode", () => ({
   ConfigurationTarget: { Global: 1 },
 }));
 
+const { activateNextEdit } = vi.hoisted(() => ({
+  activateNextEdit: vi.fn(),
+}));
 vi.mock(
   "core/vscode-test-harness/src/autocomplete/completionProvider",
   () => ({
     ContinueCompletionProvider: vi.fn().mockImplementation(() => ({
-      activateNextEdit: vi.fn(),
+      activateNextEdit,
     })),
   }),
 );
@@ -59,9 +62,13 @@ vi.mock("core/vscode-test-harness/src/activation/JumpManager", () => ({
   JumpManager: { clearInstance: vi.fn() },
 }));
 
-const { setupStatusBar } = vi.hoisted(() => ({ setupStatusBar: vi.fn() }));
+const { setupStatusBar, initStatusBar } = vi.hoisted(() => ({
+  setupStatusBar: vi.fn(),
+  initStatusBar: vi.fn(() => ({ dispose: vi.fn() })),
+}));
 vi.mock("core/vscode-test-harness/src/autocomplete/statusBar", () => ({
   setupStatusBar,
+  initStatusBar,
   StatusBarStatus: { Enabled: 1, Disabled: 0 },
 }));
 
@@ -69,6 +76,16 @@ const { OpenRouterMock } = vi.hoisted(() => ({
   OpenRouterMock: vi.fn().mockImplementation((opts: any) => opts),
 }));
 vi.mock("core/llm/llms/OpenRouter", () => ({ OpenRouter: OpenRouterMock }));
+
+// Mocked so the constructor args (notably the tabAutocompleteOptions override)
+// can be asserted. `modelSupportsNextEdit` is deliberately NOT mocked - the
+// real implementation is what the activation gating must agree with.
+const { MinimalConfigProviderMock } = vi.hoisted(() => ({
+  MinimalConfigProviderMock: vi.fn().mockImplementation((cfg: any) => cfg),
+}));
+vi.mock("core/autocomplete/MinimalConfig", () => ({
+  MinimalConfigProvider: MinimalConfigProviderMock,
+}));
 
 import {
   activate,
@@ -181,6 +198,105 @@ describe("extension.ts", () => {
       expect(ContinueCompletionProvider).toHaveBeenCalled();
       expect(registerInlineCompletionItemProvider).toHaveBeenCalled();
       expect(setupStatusBar).toHaveBeenCalledWith(1 /* Enabled */);
+    });
+
+    it("raises modelTimeout above the upstream 150ms default, which truncates hosted-API completions to one line", async () => {
+      const context = makeFakeContext();
+      await context.secrets.store(OPENROUTER_API_KEY_SECRET, "sk-existing");
+      getConfiguration.mockReturnValue({
+        get: vi.fn((_key: string, fallback?: unknown) => fallback),
+        update: vi.fn(),
+      });
+
+      await activate(context);
+
+      const config = (MinimalConfigProviderMock as unknown as Mock).mock
+        .calls[0][0];
+      expect(config.tabAutocompleteOptions.modelTimeout).toBe(5000);
+    });
+
+    // The completion gate reads status bar state, not the setting, so
+    // force-enabling here would silently undo the user's choice on reload.
+    it("honours enableTabAutocomplete=false at startup instead of force-enabling", async () => {
+      const context = makeFakeContext();
+      await context.secrets.store(OPENROUTER_API_KEY_SECRET, "sk-existing");
+      getConfiguration.mockReturnValue({
+        get: vi.fn((key: string, fallback?: unknown) =>
+          key === "enableTabAutocomplete" ? false : fallback,
+        ),
+        update: vi.fn(),
+      });
+
+      await activate(context);
+
+      expect(setupStatusBar).toHaveBeenCalledWith(0 /* Disabled */);
+      expect(setupStatusBar).not.toHaveBeenCalledWith(1 /* Enabled */);
+    });
+
+    it("enables the status bar when enableTabAutocomplete is true", async () => {
+      const context = makeFakeContext();
+      await context.secrets.store(OPENROUTER_API_KEY_SECRET, "sk-existing");
+      getConfiguration.mockReturnValue({
+        get: vi.fn((_key: string, fallback?: unknown) => fallback),
+        update: vi.fn(),
+      });
+
+      await activate(context);
+
+      expect(setupStatusBar).toHaveBeenCalledWith(1 /* Enabled */);
+    });
+  });
+
+  // NextEdit only works with fine-tuned models - NextEditProviderFactory
+  // throws for anything else. Activating it for a general chat model makes
+  // NextEditProvider bail out, and because plain autocomplete sits in the
+  // `else` branch of that check, nothing renders at all.
+  describe("NextEdit activation gating", () => {
+    async function activateWithModel(
+      model: string,
+      nextEditSetting = "auto",
+    ) {
+      const context = makeFakeContext();
+      await context.secrets.store(OPENROUTER_API_KEY_SECRET, "sk-existing");
+      getConfiguration.mockReturnValue({
+        get: vi.fn((key: string, fallback?: unknown) => {
+          if (key === "openRouter.model") return model;
+          if (key === "nextEdit.enabled") return nextEditSetting;
+          return fallback;
+        }),
+        update: vi.fn(),
+      });
+      await activate(context);
+    }
+
+    it("does NOT activate NextEdit for a general chat model", async () => {
+      await activateWithModel("anthropic/claude-3.5-sonnet");
+      expect(activateNextEdit).not.toHaveBeenCalled();
+    });
+
+    it("does NOT activate NextEdit for the free-tier default model", async () => {
+      await activateWithModel("nvidia/nemotron-3-nano-30b-a3b:free");
+      expect(activateNextEdit).not.toHaveBeenCalled();
+    });
+
+    it("activates NextEdit for a Mercury Coder model, including vendor-prefixed OpenRouter ids", async () => {
+      await activateWithModel("inception/mercury-coder");
+      expect(activateNextEdit).toHaveBeenCalled();
+    });
+
+    it("activates NextEdit for an Instinct model", async () => {
+      await activateWithModel("some-vendor/instinct");
+      expect(activateNextEdit).toHaveBeenCalled();
+    });
+
+    it("respects an explicit 'off' override even on a capable model", async () => {
+      await activateWithModel("inception/mercury-coder", "off");
+      expect(activateNextEdit).not.toHaveBeenCalled();
+    });
+
+    it("respects an explicit 'on' override on a model it wouldn't auto-detect", async () => {
+      await activateWithModel("anthropic/claude-3.5-sonnet", "on");
+      expect(activateNextEdit).toHaveBeenCalled();
     });
   });
 

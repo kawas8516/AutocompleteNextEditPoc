@@ -116,8 +116,26 @@ export function setupStatusBar(
   if (status !== undefined) {
     statusBarStatus = status;
   }
+}
 
-  vscode.workspace.onDidChangeConfiguration((event) => {
+/**
+ * Registers the one-time wiring the status bar needs, and returns a disposable
+ * that tears it all down.
+ *
+ * This exists because `setupStatusBar` used to register the config listener
+ * below itself. Since `setupStatusBar` is called on every completion request
+ * (and again ~100ms later via `stopStatusBarLoading`), that leaked two
+ * listeners per keystroke - and because the listener re-entered
+ * `setupStatusBar`, every config change doubled the count. Registering here
+ * instead keeps exactly one listener for the lifetime of the extension.
+ *
+ * The listener is load-bearing, not incidental: it is what makes the
+ * `continue.enableTabAutocomplete` setting take effect, since
+ * `provideInlineCompletionItems` gates on `getStatusBarStatus()` rather than
+ * reading the setting directly.
+ */
+export function initStatusBar(): vscode.Disposable {
+  const configListener = vscode.workspace.onDidChangeConfiguration((event) => {
     if (event.affectsConfiguration(CONTINUE_WORKSPACE_KEY)) {
       const enabled = getContinueWorkspaceConfig().get<boolean>(
         "enableTabAutocomplete",
@@ -130,6 +148,20 @@ export function setupStatusBar(
       );
     }
   });
+
+  return {
+    dispose: () => {
+      configListener.dispose();
+      // A queued callback would otherwise fire after teardown and re-show a
+      // disposed item.
+      clearTimeout(statusBarFalseTimeout);
+      statusBarFalseTimeout = undefined;
+      statusBarItem?.dispose();
+      statusBarItem = undefined;
+      statusBarStatus = undefined;
+      statusBarError = false;
+    },
+  };
 }
 
 export function getStatusBarStatus(): StatusBarStatus | undefined {
