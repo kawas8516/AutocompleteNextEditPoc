@@ -180,3 +180,6 @@ keys
 # TypeScript build cache
 *.tsbuildinfo
 compilation.md
+
+#landing page
+/landing
