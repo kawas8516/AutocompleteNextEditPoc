@@ -3,6 +3,8 @@
 // core/) into a single CommonJS file the VS Code extension host can load,
 // external-izing the `vscode` module which only exists inside the host.
 const esbuild = require("esbuild");
+const fs = require("fs");
+const path = require("path");
 
 // `npm run build` (dev/F5) keeps sourcemaps for debugging and skips
 // minification for fast, readable builds. `npm run build:prod` (used ahead
@@ -46,5 +48,25 @@ esbuild
     sourcemap: !isProd,
     minify: isProd,
     logLevel: "info",
+  })
+  .then(() => {
+    // web-tree-sitter's JS wrapper gets bundled (it's not marked external),
+    // but esbuild can't inline a .wasm binary into JS - the wrapper's
+    // Parser.init() (called with no locateFile override, see
+    // core/util/treeSitter.ts) resolves "tree-sitter.wasm" relative to the
+    // bundle's own directory at runtime. Without this file physically
+    // present there, Parser.init() throws a RuntimeError (confirmed live -
+    // not just a theoretical gap) - core/util/treeSitter.ts already
+    // try/catches this so it doesn't crash autocomplete, but tree-sitter
+    // never actually initializes. This is separate from the per-language
+    // grammar files (`tree-sitter-wasms`, 50MB) which stay deliberately
+    // excluded from the packaged VSIX (see decision.md D15) - this is just
+    // the ~186KB core parser runtime, required for the engine to start at
+    // all regardless of which language grammars are available.
+    fs.copyFileSync(
+      path.join(__dirname, "..", "node_modules", "web-tree-sitter", "tree-sitter.wasm"),
+      path.join(__dirname, "dist", "tree-sitter.wasm"),
+    );
+    console.log("copied tree-sitter.wasm to dist/");
   })
   .catch(() => process.exit(1));

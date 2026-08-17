@@ -23,6 +23,31 @@ Autocomplete and NextEdit inline completions, powered by [OpenRouter](https://op
 | `Continue: Set OpenRouter API Key` | Prompt for and securely store your OpenRouter API key. |
 | `Continue: Open Autocomplete Config Menu` | Enable/disable autocomplete from a quick pick. |
 
+## Troubleshooting
+
+**No inline completion appears after typing a keyword (e.g. `function`, `class`, `if`), even
+though it works elsewhere.** This is a VS Code editor-level interaction, not a bug in this
+extension: when VS Code's own suggestion dropdown (IntelliSense) has a selected item, its inline
+completion API only renders a preview if the completion *extends the exact text currently
+selected in that dropdown* — otherwise VS Code suppresses it, since Continue's completion can't
+generally be guaranteed to match. Typing a recognized language keyword is exactly when that
+dropdown tends to pop up.
+
+Fix: reduce how eagerly the dropdown appears automatically, so inline ghost text has room to
+show. Add to your `settings.json`:
+
+```jsonc
+"editor.quickSuggestions": {
+  "other": false,
+  "comments": false,
+  "strings": false
+}
+```
+
+You can still trigger IntelliSense manually with Ctrl+Space / Cmd+Space. Alternatively, if you'd
+rather keep quick suggestions on by default, just press `Esc` to dismiss an open dropdown before
+expecting inline ghost text to appear.
+
 ## Notes
 
 - This extension is freeware — you bring your own OpenRouter API key and pay OpenRouter directly for usage. No telemetry, no paid tiers, no proprietary services.

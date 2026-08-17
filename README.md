@@ -1,6 +1,12 @@
 # Continue (OpenRouter)
 
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/kawas8516/AutocompleteNextEditPoc)
+[![License: Apache 2.0](https://img.shields.io/github/license/kawas8516/AutocompleteNextEditPoc)](LICENSE)
+[![VS Code](https://img.shields.io/badge/VS%20Code-%5E1.80.0-blue?logo=visualstudiocode)](extension/package.json)
+[![Node](https://img.shields.io/badge/node-%3E%3D20.19.0-brightgreen?logo=node.js)](package.json)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.6-blue?logo=typescript)](tsconfig.json)
+[![Issues](https://img.shields.io/github/issues/kawas8516/AutocompleteNextEditPoc)](https://github.com/kawas8516/AutocompleteNextEditPoc/issues)
+[![Last commit](https://img.shields.io/github/last-commit/kawas8516/AutocompleteNextEditPoc)](https://github.com/kawas8516/AutocompleteNextEditPoc/commits)
 
 AI-powered autocomplete and NextEdit for VS Code — bring your own [OpenRouter](https://openrouter.ai) API key and pick any model. Freeware: no telemetry, no paid tiers, no proprietary services. You pay OpenRouter directly for what you use.
 

@@ -293,6 +293,74 @@ Confirmed **kept**, despite superficially looking removable: `core/autocomplete/
 (inside protected `core/nextEdit/**`), `core/llm/llms/OpenAI.ts` (dead at runtime for this
 extension but referenced by protected `instanceof OpenAI` checks).
 
+## D17 — tree-sitter.wasm (core parser runtime) copied into the bundle, found via live testing
+
+Everything in D9-D16 was verified via unit tests, rebuilt bundles, and VSIX inspection — not by
+actually running the extension end-to-end. Doing that (a real `code --extensionDevelopmentPath`
+Extension Development Host, a real OpenRouter key, typing in a sample file) confirmed the core
+feature works — `provideInlineCompletions` round-tripped to OpenRouter successfully (~360ms,
+consistent with a real API call), zero errors surfaced to the user — and also surfaced one real
+bug static analysis hadn't caught: a single `[error] RuntimeError: Aborted(...ENOENT...
+'extension\dist\tree-sitter.wasm')`, thrown from the bundled code inside `web-tree-sitter`'s
+loader.
+
+`web-tree-sitter`'s JS wrapper gets bundled by esbuild (it's not marked `external`), but esbuild
+can't inline a `.wasm` binary into JS. `core/util/treeSitter.ts`'s `Parser.init()` calls (no
+`locateFile` override) resolve `tree-sitter.wasm` relative to the bundle's own directory at
+runtime — `extension/dist/` — but that file was never physically placed there. Confirmed
+non-fatal: `getParserForFile`/`getLanguageForFile` (`core/util/treeSitter.ts`, not a protected
+directory) both wrap `Parser.init()` in try/catch, and completions kept working normally
+afterward — but tree-sitter itself never actually initialized for the whole session, so
+AST-based context (`ImportDefinitionsService`/`RootPathContextService`) was silently unavailable,
+with `[error]`-level log noise on top.
+
+**Distinct from D15**, not a reversal of it: D15 is about the *per-language grammar files*
+(`tree-sitter-wasms`, 50MB, 36 files) — still deliberately excluded from the packaged VSIX, that
+tradeoff stands. This is about `web-tree-sitter`'s own **core runtime** (`tree-sitter.wasm`, one
+file, ~186KB) — required just to initialize the parser engine at all, independent of which
+language grammars are available, and was missing even in **local dev** (D12-D16 only ever
+discussed the grammars, not this file).
+
+Fix, same shape as D12 (don't touch `core/util/treeSitter.ts` — it works correctly as designed;
+fix at the build layer): `extension/esbuild.js` now copies
+`node_modules/web-tree-sitter/tree-sitter.wasm` → `dist/tree-sitter.wasm` after every build (dev
+and prod). No VSIX-packaging script changes were needed — `vsce package --no-dependencies`
+already includes everything under `dist/` except `*.map` files, so the copied `.wasm` is picked
+up automatically (verified: appeared in the packaged `.vsix` listing at 181.29 KB with zero
+changes to `.vscodeignore`/`inject-native-deps.ps1`).
+
+Verified directly (not just "should work"): a standalone Node script requiring `web-tree-sitter`
+from `extension/dist/` and calling `Parser.init()` succeeded after the fix (it failed with the
+same `ENOENT` before). This is the single concrete case in this whole project where an actual
+runtime smoke test caught something the type-checker, linter, unit tests, and static bundle
+inspection all missed — worth keeping the manual E2E step in the test process for exactly this
+class of bug (a required asset silently absent from the bundle).
+
+## D18 — inline completions suppressed by VS Code's suggest widget: settings fix, not code
+
+Another live-testing finding (same spirit as D17): typing a comment describing intent, then
+typing a recognized keyword like `function` on the next line, produced no inline completion.
+Confirmed with the user that VS Code's own IntelliSense dropdown pops up at exactly that moment.
+
+Root cause, traced to `core/vscode-test-harness/src/autocomplete/completionProvider.ts` (not a
+protected directory, but unmodified upstream Continue behavior, not something the OpenRouter work
+introduced): the provider gates on `context.selectedCompletionInfo` (lines 169-187, 483-507,
+687-709), which VS Code populates whenever its suggest widget has a selection. This isn't just
+our own defensive code — it reflects VS Code's actual `InlineCompletionItem` API contract
+(documented inline at the call site): when the suggest widget has a selection, an inline
+completion is only rendered as a preview if it extends that exact selected text. Since
+TypeScript's IntelliSense selects its own suggestion — not something our OpenRouter completion
+can be guaranteed to match — VS Code suppresses our ghost text by design whenever the dropdown is
+showing, regardless of what our code does.
+
+**No code fix applies here** — loosening our own gate wouldn't help, since the actual constraint
+is VS Code's rendering contract, not our logic. Fix is a documented settings recommendation only
+(`extension/README.md` Troubleshooting section): reduce `editor.quickSuggestions` so the dropdown
+appears less eagerly, giving inline completions room to render. Deliberately **not** set
+programmatically via `contributes.configurationDefaults` — that's a global editor setting
+affecting every language server, not scoped to this extension; silently overriding it on the
+user's behalf would be a surprising side effect on their whole editor setup.
+
 ## Assumptions & known limitations
 
 - `extension/package.json`'s `publisher` is `"kawas8516"`, matching this fork's GitHub account
@@ -310,5 +378,7 @@ extension but referenced by protected `instanceof OpenAI` checks).
   VS Code's process teardown handles the rest.
 - Multi-platform `sqlite3` binaries and real `.vsix`-install verification are out of reach in
   this sandboxed environment (D14) — treat as required manual steps before distributing a build.
-- The packaged `.vsix` does not include tree-sitter WASM grammars (D15) — import-based context
-  enrichment is local-dev-only unless a maintainer extends the packaging scripts.
+- The packaged `.vsix` includes the tree-sitter core runtime (`tree-sitter.wasm`, D17) but not
+  the per-language grammar files (`tree-sitter-wasms`, D15) — the parser engine initializes
+  cleanly, but AST-based import-context enrichment for any given language is still local-dev-only
+  unless a maintainer extends the packaging scripts to include grammars too.

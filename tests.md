@@ -145,6 +145,12 @@ Not automatable from the CLI — do this after any change to `extension/src/exte
 7. If testing NextEdit: select a NextEdit-capable model available via OpenRouter (e.g.
    `inception/mercury-coder`) and confirm NextEdit suggestions render and can be
    accepted/rejected via the usual Tab/Esc flow.
+8. Check the ext-host log for silent errors (`Help > Toggle Developer Tools` isn't enough — use
+   the raw log file under `<user-data-dir>/logs/<timestamp>/window*/exthost/exthost.log`, or
+   `Developer: Show Logs... > Extension Host` from the command palette) after the first
+   activation, and grep for `[error]`. This is the step that actually caught D17
+   (`tree-sitter.wasm` missing) — the extension didn't crash and no error reached the UI, so
+   nothing short of reading this log would have surfaced it.
 
 ### Coverage gaps / not tested
 
@@ -157,6 +163,17 @@ Documented rather than silently missing:
   command shape.
 - No test exercises `deactivate()`'s interaction with a real `ExtensionContext.subscriptions`
   disposal order — only that it doesn't throw when called directly.
+- A required bundled asset silently missing (D17 — `tree-sitter.wasm`) was invisible to
+  typecheck/lint/unit-tests/bundle-size inspection alike; only actually running the extension and
+  reading the ext-host log caught it. No automated check currently guards against this class of
+  regression (a future build-script change that stops copying the file) — step 8 of the manual
+  checklist above is the only safety net for it right now.
+- VS Code suggest-widget-vs-inline-completion interaction (D18) — inline completions get
+  suppressed by VS Code itself when its own IntelliSense dropdown has a selection (confirmed live:
+  typing a keyword like `function` triggers this). This is an editor-level UI interaction, not
+  something core's unit tests or the extension's mocked-`vscode` tests can exercise — no automated
+  coverage is possible for it; the mitigation is documented in `extension/README.md`'s
+  Troubleshooting section (`editor.quickSuggestions`), not code.
 - The packaged `.vsix`'s `sqlite3` native binding is only verified on Windows (this dev
   environment); other platforms need their own build + extraction + `require()` smoke test before
   distributing a build for them (see `decision.md` D14).
