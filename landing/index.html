@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Continue (OpenRouter): AI autocomplete for VS Code, on your own API key</title>
+<title>Runahead: AI autocomplete for VS Code, on your own API key</title>
 <meta name="description" content="Free AI code completion for VS Code, running on any OpenRouter model with your own API key. No subscription, no telemetry, Apache-2.0." />
 <meta name="color-scheme" content="dark light" />
 
@@ -11,7 +11,7 @@
      All links point at the real repository.
 
      ONE CAVEAT: the Marketplace link
-       https://marketplace.visualstudio.com/items?itemName=kawas8516.continue-openrouter
+       https://marketplace.visualstudio.com/items?itemName=kawas8516.runahead
      resolves only once the extension is actually published there. The
      publisher id and extension name already match extension/package.json,
      so nothing needs changing when it goes live, but until then that
@@ -47,14 +47,14 @@
   <header class="site-head">
     <a class="mark" href="./">
       <span class="mark-glyph" aria-hidden="true">›</span>
-      Continue<em>/OpenRouter</em>
+      Run<em>ahead</em>
     </a>
 
     <nav class="site-nav" aria-label="Main">
       <a class="nav-hide-sm" href="#install">Install</a>
       <a class="nav-hide-sm" href="#free">Why it's free</a>
-      <a href="https://github.com/kawas8516/AutocompleteNextEditPoc/blob/main/CHANGELOG.md">Changelog</a>
-      <a href="https://github.com/kawas8516/AutocompleteNextEditPoc">GitHub</a>
+      <a href="https://github.com/kawas8516/runahead/blob/main/CHANGELOG.md">Changelog</a>
+      <a href="https://github.com/kawas8516/runahead">GitHub</a>
 
       <button class="theme-toggle" type="button" id="theme-toggle" aria-live="polite">
         <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
@@ -83,10 +83,10 @@
         </p>
 
         <div class="cta-row">
-          <a class="btn btn-primary" href="https://marketplace.visualstudio.com/items?itemName=kawas8516.continue-openrouter">
+          <a class="btn btn-primary" href="https://marketplace.visualstudio.com/items?itemName=kawas8516.runahead">
             Install for VS Code
           </a>
-          <a class="btn btn-ghost" href="https://github.com/kawas8516/AutocompleteNextEditPoc">View source</a>
+          <a class="btn btn-ghost" href="https://github.com/kawas8516/runahead">View source</a>
         </div>
 
         <div class="install" id="install">
@@ -97,9 +97,9 @@
           </div>
 
           <div class="panel" role="tabpanel" id="panel-market" aria-labelledby="tab-market" tabindex="0">
-            <p>Search <b>Continue (OpenRouter)</b> in the Extensions panel, or install it from a terminal.</p>
+            <p>Search <b>Runahead</b> in the Extensions panel, or install it from a terminal.</p>
             <div class="cmd">
-              <code><span class="prompt" aria-hidden="true">$ </span><span data-copy-text>code --install-extension kawas8516.continue-openrouter</span></code>
+              <code><span class="prompt" aria-hidden="true">$ </span><span data-copy-text>code --install-extension kawas8516.runahead</span></code>
               <button class="copy" type="button" data-copy>
                 <span data-copy-label>Copy</span><span class="sr-only"> install command</span>
               </button>
@@ -107,9 +107,9 @@
           </div>
 
           <div class="panel" role="tabpanel" id="panel-cli" aria-labelledby="tab-cli" tabindex="0" hidden>
-            <p>Downloaded the <code>.vsix</code> from <a href="https://github.com/kawas8516/AutocompleteNextEditPoc/releases/latest">Releases</a>? Install it directly.</p>
+            <p>Downloaded the <code>.vsix</code> from <a href="https://github.com/kawas8516/runahead/releases/latest">Releases</a>? Install it directly.</p>
             <div class="cmd">
-              <code><span class="prompt" aria-hidden="true">$ </span><span data-copy-text>code --install-extension continue-openrouter-0.1.0.vsix</span></code>
+              <code><span class="prompt" aria-hidden="true">$ </span><span data-copy-text>code --install-extension runahead-0.1.0.vsix</span></code>
               <button class="copy" type="button" data-copy>
                 <span data-copy-label>Copy</span><span class="sr-only"> install command</span>
               </button>
@@ -120,7 +120,7 @@
           <div class="panel" role="tabpanel" id="panel-src" aria-labelledby="tab-src" tabindex="0" hidden>
             <p>Build the <code>.vsix</code> yourself. Nothing needs to be published for this to work.</p>
             <div class="cmd">
-              <code><span class="prompt" aria-hidden="true">$ </span><span data-copy-text>git clone https://github.com/kawas8516/AutocompleteNextEditPoc &amp;&amp; cd AutocompleteNextEditPoc &amp;&amp; npm install &amp;&amp; npm run package --workspace=extension</span></code>
+              <code><span class="prompt" aria-hidden="true">$ </span><span data-copy-text>git clone https://github.com/kawas8516/runahead &amp;&amp; cd runahead &amp;&amp; npm install &amp;&amp; npm run package --workspace=extension</span></code>
               <button class="copy" type="button" data-copy>
                 <span data-copy-label>Copy</span><span class="sr-only"> build command</span>
               </button>
@@ -165,7 +165,7 @@
         </li>
         <li>
           <h3>Paste it into VS Code</h3>
-          <p>Run <code>Continue: Set OpenRouter API Key</code> from the command palette. It's checked against OpenRouter before it's saved.</p>
+          <p>Run <code>Runahead: Set OpenRouter API Key</code> from the command palette. It's checked against OpenRouter before it's saved.</p>
         </li>
         <li>
           <h3>Start typing</h3>
@@ -266,6 +266,10 @@
           <dt>Not done yet</dt>
           <dd>NextEdit through OpenRouter is unverified end-to-end, and the packaged build has only been tested on Windows. Both are written down rather than glossed over.</dd>
         </div>
+        <div class="note">
+          <dt>The name</dt>
+          <dd><b>Runahead execution</b> is a real processor technique: when the CPU stalls, it runs ahead of where it is to prefetch what it will probably need, and throws the work away when it guesses wrong. That is this extension, at the scale of a keystroke.</dd>
+        </div>
       </dl>
     </section>
 
@@ -274,8 +278,8 @@
       <h2>Bring your own key.</h2>
       <p>Install it, paste a key, keep typing. If it isn't for you, uninstalling leaves nothing behind.</p>
       <div class="cta-row">
-        <a class="btn btn-primary" href="https://marketplace.visualstudio.com/items?itemName=kawas8516.continue-openrouter">Install for VS Code</a>
-        <a class="btn btn-ghost" href="https://github.com/kawas8516/AutocompleteNextEditPoc">Read the source</a>
+        <a class="btn btn-primary" href="https://marketplace.visualstudio.com/items?itemName=kawas8516.runahead">Install for VS Code</a>
+        <a class="btn btn-ghost" href="https://github.com/kawas8516/runahead">Read the source</a>
       </div>
     </section>
   </main>
@@ -285,10 +289,11 @@
       Built on <a href="https://github.com/continuedev/continue" rel="noopener">Continue</a>'s
       autocomplete and NextEdit engine, with OpenRouter in place of its inference layer
       and the rest stripped out. Apache-2.0, same as upstream.
+      Not affiliated with or endorsed by Continue Dev, Inc.
     </p>
     <nav class="foot-links" aria-label="Footer">
-      <a href="https://github.com/kawas8516/AutocompleteNextEditPoc">GitHub</a>
-      <a href="https://github.com/kawas8516/AutocompleteNextEditPoc/blob/main/CHANGELOG.md">Changelog</a>
+      <a href="https://github.com/kawas8516/runahead">GitHub</a>
+      <a href="https://github.com/kawas8516/runahead/blob/main/CHANGELOG.md">Changelog</a>
       <a href="https://openrouter.ai" rel="noopener">OpenRouter</a>
     </nav>
   </footer>

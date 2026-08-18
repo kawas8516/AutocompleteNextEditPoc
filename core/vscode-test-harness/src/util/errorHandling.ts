@@ -34,30 +34,30 @@ async function handleStatusCodedError(error: StatusCodedError): Promise<void> {
   switch (error.status) {
     case 401: {
       const action = await vscode.window.showErrorMessage(
-        "Continue: Your OpenRouter API key is missing or invalid.",
+        "Runahead: Your OpenRouter API key is missing or invalid.",
         "Set API Key",
       );
       if (action === "Set API Key") {
-        await vscode.commands.executeCommand("continue.setOpenRouterApiKey");
+        await vscode.commands.executeCommand("runahead.setOpenRouterApiKey");
       }
       return;
     }
     case 402:
     case 429: {
       await vscode.window.showErrorMessage(
-        "Continue: OpenRouter rate limit reached or insufficient credits. Please wait and try again, or check your OpenRouter account balance.",
+        "Runahead: OpenRouter rate limit reached or insufficient credits. Please wait and try again, or check your OpenRouter account balance.",
       );
       return;
     }
     case 400: {
       await vscode.window.showErrorMessage(
-        `Continue: OpenRouter rejected the request - the configured model may be invalid or unavailable. Check the "continue.openRouter.model" setting.`,
+        `Runahead: OpenRouter rejected the request - the configured model may be invalid or unavailable. Check the "runahead.openRouter.model" setting.`,
       );
       return;
     }
     default: {
       await vscode.window.showErrorMessage(
-        `Continue: OpenRouter request failed (status ${error.status}).${
+        `Runahead: OpenRouter request failed (status ${error.status}).${
           error.message ? ` ${error.message}` : ""
         }`,
       );

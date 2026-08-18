@@ -1,6 +1,6 @@
 # Landing page
 
-Static landing page for **Continue (OpenRouter)**. No build step, no framework,
+Static landing page for **Runahead**. No build step, no framework,
 no dependencies. Copy this folder into a repo and it works.
 
 ## Publish on GitHub Pages
@@ -17,11 +17,11 @@ Jekyll over them.
 ## Links
 
 All links point at
-[kawas8516/AutocompleteNextEditPoc](https://github.com/kawas8516/AutocompleteNextEditPoc).
+[kawas8516/runahead](https://github.com/kawas8516/runahead).
 Nothing needs editing before publishing the page.
 
 One caveat: the **Marketplace** link and the `code --install-extension
-kawas8516.continue-openrouter` command in the first install tab resolve only
+kawas8516.runahead` command in the first install tab resolve only
 once the extension is published to the VS Code Marketplace. The publisher id and
 extension name already match `extension/package.json`, so they will start
 working the moment `vsce publish` succeeds, with no edit here. Until then, the

@@ -110,7 +110,7 @@ function buildItems(
     {
       label: "$(discard) Reset Settings",
       detail:
-        "Restore all Continue settings to their defaults. Your API key is kept.",
+        "Restore all Runahead settings to their defaults. Your API key is kept.",
       action: "resetSettings",
     },
     {
@@ -125,7 +125,7 @@ async function resetSettings(
   config: vscode.WorkspaceConfiguration,
 ): Promise<void> {
   const confirm = await vscode.window.showWarningMessage(
-    "Reset all Continue settings to their defaults?",
+    "Reset all Runahead settings to their defaults?",
     { modal: true, detail: "Your OpenRouter API key will be kept." },
     "Reset Settings",
   );
@@ -141,7 +141,7 @@ async function resetSettings(
   }
 
   vscode.window.showInformationMessage(
-    "Continue: settings reset to defaults.",
+    "Runahead: settings reset to defaults.",
   );
 }
 
@@ -160,14 +160,14 @@ async function resetCache(): Promise<void> {
 
   try {
     await clearCompletionCache();
-    vscode.window.showInformationMessage("Continue: completion cache cleared.");
+    vscode.window.showInformationMessage("Runahead: completion cache cleared.");
   } catch (e) {
     // A missing database just means nothing was ever cached - not an error
     // worth alarming the user about, but worth distinguishing from a real
     // failure.
     const message = e instanceof Error ? e.message : String(e);
     vscode.window.showWarningMessage(
-      `Continue: could not clear the completion cache. ${message}`,
+      `Runahead: could not clear the completion cache. ${message}`,
     );
   }
 }
@@ -202,7 +202,7 @@ export async function showStatusBarMenu(
   apiKeySecret: string,
   defaultModel: string,
 ): Promise<void> {
-  const config = vscode.workspace.getConfiguration("continue");
+  const config = vscode.workspace.getConfiguration("runahead");
   const autocompleteEnabled = config.get<boolean>(
     "enableTabAutocomplete",
     true,
@@ -213,7 +213,7 @@ export async function showStatusBarMenu(
 
   const picked = await vscode.window.showQuickPick(
     buildItems(autocompleteEnabled, nextEditSetting, model, hasApiKey),
-    { title: "Continue (OpenRouter)" },
+    { title: "Runahead" },
   );
   if (!picked?.action) {
     return;
@@ -244,7 +244,7 @@ export async function showStatusBarMenu(
 
     case "changeApiKey":
       // Reuse the existing command so key validation lives in one place.
-      await vscode.commands.executeCommand("continue.setOpenRouterApiKey");
+      await vscode.commands.executeCommand("runahead.setOpenRouterApiKey");
       return;
 
     case "changeModel":

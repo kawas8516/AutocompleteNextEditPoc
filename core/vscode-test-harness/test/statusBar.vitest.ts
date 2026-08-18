@@ -68,7 +68,7 @@ describe("status bar", () => {
     disposable.dispose();
   });
 
-  // The listener is what makes `continue.enableTabAutocomplete` take effect,
+  // The listener is what makes `runahead.enableTabAutocomplete` take effect,
   // since the completion gate reads status rather than the setting. Removing
   // it to "fix the leak" would silently break the toggle.
   it("still applies enableTabAutocomplete changes after the leak fix", () => {

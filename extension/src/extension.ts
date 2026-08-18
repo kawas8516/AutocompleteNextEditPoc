@@ -17,7 +17,14 @@ import * as vscode from "vscode";
 import { showStatusBarMenu } from "./statusBarMenu";
 import { VsCodeIde } from "./VsCodeIde";
 
-export const OPENROUTER_API_KEY_SECRET = "continue.openRouterApiKey";
+export const OPENROUTER_API_KEY_SECRET = "runahead.openRouterApiKey";
+/**
+ * The pre-rename secret key. SecretStorage is keyed by string, so renaming
+ * the extension orphaned any key stored by an earlier build - the value is
+ * still in the OS credential store, just under a name nothing reads.
+ * `migrateApiKeySecret()` moves it across once, on activation.
+ */
+const LEGACY_API_KEY_SECRET = "continue.openRouterApiKey";
 const OPENROUTER_AUTH_KEY_URL = "https://openrouter.ai/api/v1/auth/key";
 /** Kept in sync with the default in `extension/package.json`. */
 const DEFAULT_MODEL = "nvidia/nemotron-3-nano-30b-a3b:free";
@@ -55,7 +62,7 @@ function registerSetApiKeyCommand(
   context: vscode.ExtensionContext,
 ): vscode.Disposable {
   return vscode.commands.registerCommand(
-    "continue.setOpenRouterApiKey",
+    "runahead.setOpenRouterApiKey",
     async () => {
       const apiKey = await vscode.window.showInputBox({
         title: "OpenRouter API Key",
@@ -72,7 +79,7 @@ function registerSetApiKeyCommand(
         valid = await validateOpenRouterApiKey(apiKey);
       } catch (e) {
         vscode.window.showErrorMessage(
-          `Continue: Couldn't validate the OpenRouter API key (network error). Saved it anyway - it will be re-checked on first use. ${
+          `Runahead: Couldn't validate the OpenRouter API key (network error). Saved it anyway - it will be re-checked on first use. ${
             e instanceof Error ? e.message : String(e)
           }`,
         );
@@ -82,14 +89,14 @@ function registerSetApiKeyCommand(
 
       if (!valid) {
         vscode.window.showErrorMessage(
-          "Continue: That OpenRouter API key was rejected (401 Unauthorized). It was not saved.",
+          "Runahead: That OpenRouter API key was rejected (401 Unauthorized). It was not saved.",
         );
         return;
       }
 
       await context.secrets.store(OPENROUTER_API_KEY_SECRET, apiKey);
       vscode.window.showInformationMessage(
-        "Continue: OpenRouter API key validated and saved.",
+        "Runahead: OpenRouter API key validated and saved.",
       );
     },
   );
@@ -103,7 +110,7 @@ function registerConfigMenuCommand(
   context: vscode.ExtensionContext,
 ): vscode.Disposable {
   return vscode.commands.registerCommand(
-    "continue.openTabAutocompleteConfigMenu",
+    "runahead.openTabAutocompleteConfigMenu",
     () =>
       showStatusBarMenu(context, OPENROUTER_API_KEY_SECRET, DEFAULT_MODEL),
   );
@@ -120,19 +127,19 @@ function registerConfigMenuCommand(
 function registerLoggingCommands(): vscode.Disposable[] {
   return [
     vscode.commands.registerCommand(
-      "continue.logAutocompleteOutcome",
+      "runahead.logAutocompleteOutcome",
       (completionId: string, completionProvider: CompletionProvider) => {
         completionProvider.accept(completionId);
       },
     ),
     vscode.commands.registerCommand(
-      "continue.logNextEditOutcomeAccept",
+      "runahead.logNextEditOutcomeAccept",
       (completionId: string, loggingService: NextEditLoggingService) => {
         loggingService.accept(completionId);
       },
     ),
     vscode.commands.registerCommand(
-      "continue.logNextEditOutcomeReject",
+      "runahead.logNextEditOutcomeReject",
       (completionId: string, loggingService: NextEditLoggingService) => {
         loggingService.reject(completionId);
       },
@@ -182,7 +189,7 @@ async function registerCompletionProvider(
     return undefined;
   }
 
-  const config = vscode.workspace.getConfiguration("continue");
+  const config = vscode.workspace.getConfiguration("runahead");
   const model = config.get<string>("openRouter.model", DEFAULT_MODEL);
 
   const llm = new OpenRouter({ apiKey, model });
@@ -239,8 +246,36 @@ async function registerCompletionProvider(
   return registration;
 }
 
+/**
+ * Moves an API key stored under the pre-rename secret name across to the
+ * current one, so upgrading users don't have to re-enter it.
+ *
+ * Deliberately non-destructive on the read side and idempotent: if the new
+ * key already holds a value it wins and the legacy entry is simply deleted,
+ * so a user who re-entered their key before upgrading doesn't get it
+ * silently replaced by an older one. Safe to delete this function (and its
+ * call in `activate`) once no installs predate the rename.
+ */
+export async function migrateApiKeySecret(
+  secrets: vscode.SecretStorage,
+): Promise<void> {
+  const legacy = await secrets.get(LEGACY_API_KEY_SECRET);
+  if (legacy === undefined) {
+    return;
+  }
+  const current = await secrets.get(OPENROUTER_API_KEY_SECRET);
+  if (current === undefined) {
+    await secrets.store(OPENROUTER_API_KEY_SECRET, legacy);
+  }
+  await secrets.delete(LEGACY_API_KEY_SECRET);
+}
+
 export async function activate(context: vscode.ExtensionContext) {
   const ide = new VsCodeIde();
+
+  // Before anything reads the key. Storing under the new name fires
+  // `onDidChange`, which the listener below turns into a provider refresh.
+  await migrateApiKeySecret(context.secrets);
 
   context.subscriptions.push(
     initStatusBar(),
@@ -272,13 +307,13 @@ export async function activate(context: vscode.ExtensionContext) {
     vscode.workspace.onDidChangeConfiguration((e) => {
       // These three are read once, when the provider is constructed, so a
       // change only takes effect if the provider is rebuilt.
-      // `continue.enableTabAutocomplete` is deliberately absent: it's read
+      // `runahead.enableTabAutocomplete` is deliberately absent: it's read
       // live on every request via the status bar gate, so rebuilding for it
       // would be wasted work.
       if (
-        e.affectsConfiguration("continue.openRouter.model") ||
-        e.affectsConfiguration("continue.nextEdit.enabled") ||
-        e.affectsConfiguration("continue.modelTimeout")
+        e.affectsConfiguration("runahead.openRouter.model") ||
+        e.affectsConfiguration("runahead.nextEdit.enabled") ||
+        e.affectsConfiguration("runahead.modelTimeout")
       ) {
         void refresh();
       }
@@ -292,12 +327,12 @@ export async function activate(context: vscode.ExtensionContext) {
   if (!hasKey) {
     vscode.window
       .showInformationMessage(
-        "Continue: set an OpenRouter API key to enable autocomplete and NextEdit.",
+        "Runahead: set an OpenRouter API key to enable autocomplete and NextEdit.",
         "Set API Key",
       )
       .then((choice) => {
         if (choice === "Set API Key") {
-          void vscode.commands.executeCommand("continue.setOpenRouterApiKey");
+          void vscode.commands.executeCommand("runahead.setOpenRouterApiKey");
         }
       });
   }

@@ -29,7 +29,7 @@ describe("handleLLMError", () => {
       "Set API Key",
     );
     expect(executeCommand).toHaveBeenCalledWith(
-      "continue.setOpenRouterApiKey",
+      "runahead.setOpenRouterApiKey",
     );
   });
 

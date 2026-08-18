@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to **Continue (OpenRouter)** are recorded here.
+All notable changes to **Runahead** are recorded here.
 
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
@@ -12,7 +12,16 @@ OpenRouter model with your own API key.
 
 Built on [Continue](https://github.com/continuedev/continue)'s autocomplete and
 NextEdit engine (Apache-2.0), with the inference layer replaced by OpenRouter
-and the chat, agent, GUI, and telemetry surfaces removed.
+and the chat, agent, GUI, and telemetry surfaces removed. Runahead is not
+affiliated with or endorsed by Continue Dev, Inc.
+
+> **Naming.** Pre-release builds of this extension were called
+> "Continue (OpenRouter)" and used a `continue.*` settings and command
+> namespace. Apache-2.0 licenses the code but explicitly not the trademark
+> (§6), so the project was renamed before publication. If you ran one of
+> those builds, everything moved to `runahead.*` and commands now read
+> "Runahead: …"; your stored API key is migrated automatically on first
+> activation, so there is nothing to re-enter.
 
 ### Added
 
@@ -24,13 +33,13 @@ and the chat, agent, GUI, and telemetry surfaces removed.
   `/completions` endpoint OpenRouter does not serve.
 - **Secure API key storage.** The key lives in the OS credential store via
   `vscode.SecretStorage`. It is never written to `settings.json` and never
-  logged. Set it with the `Continue: Set OpenRouter API Key` command, which
+  logged. Set it with the `Runahead: Set OpenRouter API Key` command, which
   validates the key against OpenRouter before saving it.
 - **Status bar menu.** Toggle autocomplete, toggle NextEdit, change the API
   key, change the model, reset settings, or clear the completion cache without
   opening a settings file.
-- **Settings**: `continue.enableTabAutocomplete`, `continue.openRouter.model`,
-  `continue.nextEdit.enabled` (`auto` / `on` / `off`), `continue.modelTimeout`.
+- **Settings**: `runahead.enableTabAutocomplete`, `runahead.openRouter.model`,
+  `runahead.nextEdit.enabled` (`auto` / `on` / `off`), `runahead.modelTimeout`.
 - **Keybindings** for accepting and dismissing NextEdit suggestions and jumps
   (`Tab` / `Esc`), which the underlying engine registered but never exposed.
 - **Error handling** for missing or invalid keys, rate limits and insufficient
@@ -105,4 +114,4 @@ Recorded rather than glossed over. See `decision.md` for the full reasoning.
 - Node 20.19 or newer (only to build from source)
 - An [OpenRouter](https://openrouter.ai/keys) API key
 
-[0.1.0]: https://github.com/kawas8516/AutocompleteNextEditPoc/releases/tag/v0.1.0
+[0.1.0]: https://github.com/kawas8516/runahead/releases/tag/v0.1.0

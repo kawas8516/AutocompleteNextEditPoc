@@ -48,7 +48,7 @@ vi.mock("core/util/paths", () => ({
 
 import { showStatusBarMenu } from "../src/statusBarMenu";
 
-const SECRET = "continue.openRouterApiKey";
+const SECRET = "runahead.openRouterApiKey";
 const DEFAULT_MODEL = "nvidia/nemotron-3-nano-30b-a3b:free";
 
 /** Minimal ExtensionContext stand-in - only `secrets` is used by the menu. */
@@ -197,7 +197,7 @@ describe("status bar menu", () => {
     it("delegates the API key change to the existing command", async () => {
       await pick("changeApiKey");
       expect(executeCommand).toHaveBeenCalledWith(
-        "continue.setOpenRouterApiKey",
+        "runahead.setOpenRouterApiKey",
       );
     });
 

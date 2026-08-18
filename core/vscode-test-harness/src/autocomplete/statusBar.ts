@@ -1,8 +1,8 @@
 import * as vscode from "vscode";
 
 import {
-  CONTINUE_WORKSPACE_KEY,
-  getContinueWorkspaceConfig,
+  RUNAHEAD_WORKSPACE_KEY,
+  getRunaheadWorkspaceConfig,
 } from "../util/workspaceConfig";
 
 export enum StatusBarStatus {
@@ -17,29 +17,29 @@ const statusBarItemText = (
   error?: boolean,
 ) => {
   if (error) {
-    return "$(alert) Continue (config error)";
+    return "$(alert) Runahead (config error)";
   }
 
   let text: string;
   switch (status) {
     case undefined:
       if (loading) {
-        text = "$(loading~spin) Continue";
+        text = "$(loading~spin) Runahead";
       } else {
-        text = "Continue";
+        text = "Runahead";
       }
       break;
     case StatusBarStatus.Disabled:
-      text = "$(circle-slash) Continue";
+      text = "$(circle-slash) Runahead";
       break;
     case StatusBarStatus.Enabled:
-      text = "$(check) Continue";
+      text = "$(check) Runahead";
       break;
     case StatusBarStatus.Paused:
-      text = "$(debug-pause) Continue";
+      text = "$(debug-pause) Runahead";
       break;
     default:
-      text = "Continue";
+      text = "Runahead";
   }
 
   // Append Next Edit indicator if enabled.
@@ -110,7 +110,7 @@ export function setupStatusBar(
 
   statusBarItem.text = statusBarItemText(status, loading, statusBarError);
   statusBarItem.tooltip = statusBarItemTooltip(status ?? statusBarStatus);
-  statusBarItem.command = "continue.openTabAutocompleteConfigMenu";
+  statusBarItem.command = "runahead.openTabAutocompleteConfigMenu";
 
   statusBarItem.show();
   if (status !== undefined) {
@@ -130,14 +130,14 @@ export function setupStatusBar(
  * instead keeps exactly one listener for the lifetime of the extension.
  *
  * The listener is load-bearing, not incidental: it is what makes the
- * `continue.enableTabAutocomplete` setting take effect, since
+ * `runahead.enableTabAutocomplete` setting take effect, since
  * `provideInlineCompletionItems` gates on `getStatusBarStatus()` rather than
  * reading the setting directly.
  */
 export function initStatusBar(): vscode.Disposable {
   const configListener = vscode.workspace.onDidChangeConfiguration((event) => {
-    if (event.affectsConfiguration(CONTINUE_WORKSPACE_KEY)) {
-      const enabled = getContinueWorkspaceConfig().get<boolean>(
+    if (event.affectsConfiguration(RUNAHEAD_WORKSPACE_KEY)) {
+      const enabled = getRunaheadWorkspaceConfig().get<boolean>(
         "enableTabAutocomplete",
       );
       if (enabled && statusBarStatus === StatusBarStatus.Paused) {

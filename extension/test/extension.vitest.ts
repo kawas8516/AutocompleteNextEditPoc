@@ -90,6 +90,7 @@ vi.mock("core/autocomplete/MinimalConfig", () => ({
 import {
   activate,
   deactivate,
+  migrateApiKeySecret,
   OPENROUTER_API_KEY_SECRET,
   validateOpenRouterApiKey,
 } from "../src/extension";
@@ -149,11 +150,11 @@ describe("extension.ts", () => {
       const registeredIds = registerCommand.mock.calls.map((c) => c[0]);
       expect(registeredIds).toEqual(
         expect.arrayContaining([
-          "continue.setOpenRouterApiKey",
-          "continue.openTabAutocompleteConfigMenu",
-          "continue.logAutocompleteOutcome",
-          "continue.logNextEditOutcomeAccept",
-          "continue.logNextEditOutcomeReject",
+          "runahead.setOpenRouterApiKey",
+          "runahead.openTabAutocompleteConfigMenu",
+          "runahead.logAutocompleteOutcome",
+          "runahead.logNextEditOutcomeAccept",
+          "runahead.logNextEditOutcomeReject",
         ]),
       );
     });
@@ -303,10 +304,10 @@ describe("extension.ts", () => {
   describe("setOpenRouterApiKey command", () => {
     function getHandler() {
       const call = registerCommand.mock.calls.find(
-        (c) => c[0] === "continue.setOpenRouterApiKey",
+        (c) => c[0] === "runahead.setOpenRouterApiKey",
       );
       if (!call) {
-        throw new Error("continue.setOpenRouterApiKey was not registered");
+        throw new Error("runahead.setOpenRouterApiKey was not registered");
       }
       return call[1] as () => Promise<void>;
     }
@@ -356,6 +357,70 @@ describe("extension.ts", () => {
   describe("deactivate", () => {
     it("clears the JumpManager and NextEditWindowManager singletons without throwing", () => {
       expect(() => deactivate()).not.toThrow();
+    });
+  });
+
+  // The extension was renamed from "continue-openrouter" to "runahead", which
+  // moved the SecretStorage key. Without this migration an upgrading user's
+  // key silently vanishes - the value is still in the OS credential store,
+  // just under a name nothing reads any more.
+  describe("migrateApiKeySecret", () => {
+    const LEGACY = "continue.openRouterApiKey";
+
+    it("moves a legacy key to the current name and removes the old entry", async () => {
+      const context = makeFakeContext();
+      context.__store.set(LEGACY, "sk-or-legacy");
+
+      await migrateApiKeySecret(context.secrets);
+
+      expect(context.__store.get(OPENROUTER_API_KEY_SECRET)).toBe(
+        "sk-or-legacy",
+      );
+      expect(context.__store.has(LEGACY)).toBe(false);
+    });
+
+    it("keeps the current key when both exist, discarding the stale one", async () => {
+      const context = makeFakeContext();
+      context.__store.set(LEGACY, "sk-or-old");
+      context.__store.set(OPENROUTER_API_KEY_SECRET, "sk-or-new");
+
+      await migrateApiKeySecret(context.secrets);
+
+      expect(context.__store.get(OPENROUTER_API_KEY_SECRET)).toBe("sk-or-new");
+      expect(context.__store.has(LEGACY)).toBe(false);
+    });
+
+    it("does nothing when there is no legacy key", async () => {
+      const context = makeFakeContext();
+
+      await migrateApiKeySecret(context.secrets);
+
+      expect(context.secrets.store).not.toHaveBeenCalled();
+      expect(context.secrets.delete).not.toHaveBeenCalled();
+    });
+
+    it("is idempotent across repeated activations", async () => {
+      const context = makeFakeContext();
+      context.__store.set(LEGACY, "sk-or-legacy");
+
+      await migrateApiKeySecret(context.secrets);
+      await migrateApiKeySecret(context.secrets);
+
+      expect(context.__store.get(OPENROUTER_API_KEY_SECRET)).toBe(
+        "sk-or-legacy",
+      );
+      expect(context.secrets.store).toHaveBeenCalledTimes(1);
+    });
+
+    it("runs during activate, so an upgrading user keeps their key", async () => {
+      const context = makeFakeContext();
+      context.__store.set(LEGACY, "sk-or-legacy");
+
+      await activate(context);
+
+      expect(context.__store.get(OPENROUTER_API_KEY_SECRET)).toBe(
+        "sk-or-legacy",
+      );
     });
   });
 });

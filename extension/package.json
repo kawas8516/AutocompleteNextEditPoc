@@ -1,40 +1,49 @@
 {
-  "name": "continue-openrouter",
-  "displayName": "Continue (OpenRouter)",
-  "description": "Autocomplete and NextEdit powered by OpenRouter - bring your own API key and model.",
+  "name": "runahead",
+  "displayName": "Runahead",
+  "description": "Autocomplete and NextEdit that run ahead of your cursor. Bring your own OpenRouter key and model.",
   "version": "0.1.0",
   "publisher": "kawas8516",
   "private": true,
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/kawas8516/AutocompleteNextEditPoc.git",
+    "url": "https://github.com/kawas8516/runahead.git",
     "directory": "extension"
   },
   "engines": {
     "vscode": "^1.80.0",
     "node": ">=20.19.0"
   },
-  "categories": ["Programming Languages", "Machine Learning"],
-  "activationEvents": ["onStartupFinished"],
+  "categories": [
+    "Programming Languages",
+    "Machine Learning"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
   "main": "./dist/extension.js",
   "contributes": {
     "configuration": {
-      "title": "Continue (OpenRouter)",
+      "title": "Runahead",
       "properties": {
-        "continue.enableTabAutocomplete": {
+        "runahead.enableTabAutocomplete": {
           "type": "boolean",
           "default": true,
           "description": "Enable inline autocomplete suggestions."
         },
-        "continue.openRouter.model": {
+        "runahead.openRouter.model": {
           "type": "string",
           "default": "nvidia/nemotron-3-nano-30b-a3b:free",
-          "description": "The OpenRouter model ID used for autocomplete and NextEdit completions. Defaults to a small free-tier model so the extension works on a free OpenRouter account without credits. Autocomplete fires on nearly every keystroke, so a small, fast model usually feels better than a large, slow one. Paid models (e.g. \"anthropic/claude-3.5-sonnet\") give higher quality but require credits on your key. See https://openrouter.ai/models for the full catalog. Your API key is set separately via the \"Continue: Set OpenRouter API Key\" command."
+          "description": "The OpenRouter model ID used for autocomplete and NextEdit completions. Defaults to a small free-tier model so the extension works on a free OpenRouter account without credits. Autocomplete fires on nearly every keystroke, so a small, fast model usually feels better than a large, slow one. Paid models (e.g. \"anthropic/claude-3.5-sonnet\") give higher quality but require credits on your key. See https://openrouter.ai/models for the full catalog. Your API key is set separately via the \"Runahead: Set OpenRouter API Key\" command."
         },
-        "continue.nextEdit.enabled": {
+        "runahead.nextEdit.enabled": {
           "type": "string",
-          "enum": ["auto", "on", "off"],
+          "enum": [
+            "auto",
+            "on",
+            "off"
+          ],
           "default": "auto",
           "enumDescriptions": [
             "Enable NextEdit only when the selected model supports it (currently Mercury Coder and Instinct). Otherwise use standard inline autocomplete.",
@@ -43,7 +52,7 @@
           ],
           "description": "Controls the NextEdit multi-location edit prediction feature. NextEdit requires a fine-tuned model (Mercury Coder or Instinct); standard inline autocomplete works with any model."
         },
-        "continue.modelTimeout": {
+        "runahead.modelTimeout": {
           "type": "number",
           "default": 5000,
           "minimum": 500,
@@ -53,78 +62,78 @@
     },
     "commands": [
       {
-        "command": "continue.setOpenRouterApiKey",
-        "title": "Continue: Set OpenRouter API Key",
-        "category": "Continue"
+        "command": "runahead.setOpenRouterApiKey",
+        "title": "Runahead: Set OpenRouter API Key",
+        "category": "Runahead"
       },
       {
-        "command": "continue.openTabAutocompleteConfigMenu",
-        "title": "Continue: Open Autocomplete Config Menu",
-        "category": "Continue"
+        "command": "runahead.openTabAutocompleteConfigMenu",
+        "title": "Runahead: Open Autocomplete Config Menu",
+        "category": "Runahead"
       },
       {
-        "command": "continue.logAutocompleteOutcome",
-        "title": "Continue: Log Autocomplete Outcome",
-        "category": "Continue"
+        "command": "runahead.logAutocompleteOutcome",
+        "title": "Runahead: Log Autocomplete Outcome",
+        "category": "Runahead"
       },
       {
-        "command": "continue.logNextEditOutcomeAccept",
-        "title": "Continue: Accept NextEdit Suggestion",
-        "category": "Continue"
+        "command": "runahead.logNextEditOutcomeAccept",
+        "title": "Runahead: Accept NextEdit Suggestion",
+        "category": "Runahead"
       },
       {
-        "command": "continue.logNextEditOutcomeReject",
-        "title": "Continue: Reject NextEdit Suggestion",
-        "category": "Continue"
+        "command": "runahead.logNextEditOutcomeReject",
+        "title": "Runahead: Reject NextEdit Suggestion",
+        "category": "Runahead"
       },
       {
-        "command": "continue.nextEditWindow.acceptNextEditSuggestion",
-        "title": "Continue: Accept NextEdit Window Suggestion",
-        "category": "Continue"
+        "command": "runahead.nextEditWindow.acceptNextEditSuggestion",
+        "title": "Runahead: Accept NextEdit Window Suggestion",
+        "category": "Runahead"
       },
       {
-        "command": "continue.nextEditWindow.hideNextEditSuggestion",
-        "title": "Continue: Dismiss NextEdit Window Suggestion",
-        "category": "Continue"
+        "command": "runahead.nextEditWindow.hideNextEditSuggestion",
+        "title": "Runahead: Dismiss NextEdit Window Suggestion",
+        "category": "Runahead"
       },
       {
-        "command": "continue.acceptJump",
-        "title": "Continue: Accept Jump to Next Edit Location",
-        "category": "Continue"
+        "command": "runahead.acceptJump",
+        "title": "Runahead: Accept Jump to Next Edit Location",
+        "category": "Runahead"
       },
       {
-        "command": "continue.rejectJump",
-        "title": "Continue: Reject Jump to Next Edit Location",
-        "category": "Continue"
+        "command": "runahead.rejectJump",
+        "title": "Runahead: Reject Jump to Next Edit Location",
+        "category": "Runahead"
       }
     ],
     "keybindings": [
       {
-        "command": "continue.nextEditWindow.acceptNextEditSuggestion",
+        "command": "runahead.nextEditWindow.acceptNextEditSuggestion",
         "key": "tab",
         "when": "editorTextFocus && nextEditWindowActive"
       },
       {
-        "command": "continue.nextEditWindow.hideNextEditSuggestion",
+        "command": "runahead.nextEditWindow.hideNextEditSuggestion",
         "key": "escape",
         "when": "editorTextFocus && nextEditWindowActive"
       },
       {
-        "command": "continue.acceptJump",
+        "command": "runahead.acceptJump",
         "key": "tab",
-        "when": "editorTextFocus && continue.jumpDecorationVisible"
+        "when": "editorTextFocus && runahead.jumpDecorationVisible"
       },
       {
-        "command": "continue.rejectJump",
+        "command": "runahead.rejectJump",
         "key": "escape",
-        "when": "editorTextFocus && continue.jumpDecorationVisible"
+        "when": "editorTextFocus && runahead.jumpDecorationVisible"
       }
     ]
   },
   "scripts": {
     "build": "node esbuild.js",
     "build:prod": "node esbuild.js --production",
-    "package": "npm run build:prod && node scripts/prepare-native-deps.js && vsce package --no-dependencies && powershell -ExecutionPolicy Bypass -File scripts/inject-native-deps.ps1",
+    "package": "node scripts/build-icon.js && npm run build:prod && node scripts/prepare-native-deps.js && vsce package --no-dependencies && powershell -ExecutionPolicy Bypass -File scripts/inject-native-deps.ps1",
     "test": "vitest run --config vitest.config.ts",
     "test:watch": "vitest --config vitest.config.ts",
     "typecheck": "tsgo --noEmit"
@@ -138,5 +147,13 @@
     "@vscode/vsce": "^3.2.1",
     "esbuild": "^0.24.0",
     "vitest": "^3.1.4"
-  }
+  },
+  "keywords": [
+    "autocomplete",
+    "openrouter",
+    "inline completion",
+    "ghost text",
+    "ai"
+  ],
+  "icon": "media/icon.png"
 }

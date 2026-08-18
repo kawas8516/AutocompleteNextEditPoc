@@ -1,22 +1,22 @@
-# Continue (OpenRouter)
+# Runahead
 
 Autocomplete and NextEdit inline completions, powered by [OpenRouter](https://openrouter.ai) with your own API key and model of choice.
 
 ## Setup
 
 1. Get an API key from [openrouter.ai/keys](https://openrouter.ai/keys).
-2. Run the command **"Continue: Set OpenRouter API Key"** (Ctrl+Shift+P / Cmd+Shift+P) and paste it in. The key is validated immediately and stored in VS Code's secure credential storage — it is never written to `settings.json` and never logged.
-3. (Optional) Set `continue.openRouter.model` in your settings to any [OpenRouter model ID](https://openrouter.ai/models), e.g. `anthropic/claude-3.5-sonnet` (default) or `qwen/qwen-2.5-coder-32b-instruct`.
+2. Run the command **"Runahead: Set OpenRouter API Key"** (Ctrl+Shift+P / Cmd+Shift+P) and paste it in. The key is validated immediately and stored in VS Code's secure credential storage — it is never written to `settings.json` and never logged.
+3. (Optional) Set `runahead.openRouter.model` in your settings to any [OpenRouter model ID](https://openrouter.ai/models), e.g. `anthropic/claude-3.5-sonnet` (default) or `qwen/qwen-2.5-coder-32b-instruct`.
 4. Start typing — inline completions stream in as you go.
 
 ## Settings
 
 | Setting | Description | Default |
 |---|---|---|
-| `continue.enableTabAutocomplete` | Enable/disable inline autocomplete suggestions. | `true` |
-| `continue.openRouter.model` | OpenRouter model ID used for completions. | `nvidia/nemotron-3-nano-30b-a3b:free` |
-| `continue.nextEdit.enabled` | NextEdit multi-location edit prediction: `auto` (only for capable models), `on`, `off`. | `auto` |
-| `continue.modelTimeout` | Milliseconds a completion may keep streaming. Raise if suggestions look cut off. | `5000` |
+| `runahead.enableTabAutocomplete` | Enable/disable inline autocomplete suggestions. | `true` |
+| `runahead.openRouter.model` | OpenRouter model ID used for completions. | `nvidia/nemotron-3-nano-30b-a3b:free` |
+| `runahead.nextEdit.enabled` | NextEdit multi-location edit prediction: `auto` (only for capable models), `on`, `off`. | `auto` |
+| `runahead.modelTimeout` | Milliseconds a completion may keep streaming. Raise if suggestions look cut off. | `5000` |
 
 ## Status bar menu
 
@@ -42,8 +42,8 @@ need it.
 
 | Command | Description |
 |---|---|
-| `Continue: Set OpenRouter API Key` | Prompt for and securely store your OpenRouter API key. |
-| `Continue: Open Autocomplete Config Menu` | Enable/disable autocomplete from a quick pick. |
+| `Runahead: Set OpenRouter API Key` | Prompt for and securely store your OpenRouter API key. |
+| `Runahead: Open Autocomplete Config Menu` | Enable/disable autocomplete from a quick pick. |
 
 ## Choosing a model
 
@@ -57,7 +57,7 @@ extension works on a free OpenRouter account with no credits.
 **If you use `:free` models, be aware of rate limits.** OpenRouter's free tier is rate-limited
 (commonly around 20 requests/minute), and continuous typing can exceed that — you'll see the
 "rate limit reached" message. If that happens often, either raise
-`continue.enableTabAutocomplete` off while doing heavy editing, or switch to a paid model on a
+`runahead.enableTabAutocomplete` off while doing heavy editing, or switch to a paid model on a
 key with credits.
 
 **If your key has credits**, a code-specific model (e.g. `qwen/qwen-2.5-coder-32b-instruct`) or a
@@ -95,7 +95,7 @@ cursor. It requires a **fine-tuned model** — currently Mercury Coder or Instin
 `inception/mercury-coder`); the underlying engine has model-specific prompt templates and will not
 work with a general chat model.
 
-`continue.nextEdit.enabled` defaults to `auto`, which turns NextEdit on only when the selected
+`runahead.nextEdit.enabled` defaults to `auto`, which turns NextEdit on only when the selected
 model supports it and otherwise uses standard inline autocomplete. Setting it to `on` with an
 unsupported model produces no suggestions at all, so leave it on `auto` unless you know your model
 is NextEdit-capable.
