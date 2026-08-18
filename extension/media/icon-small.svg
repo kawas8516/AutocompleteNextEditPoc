@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-labelledby="t">
+  <title id="t">Continue (OpenRouter)</title>
+
+  <!-- Small-size variant, for 16-32px use (favicon, status bar, tab icon).
+       Same gesture as icon.svg — caret, then suggestion trailing off — but
+       two trailing words instead of three, a heavier caret, and wider gaps.
+       At 16px the full mark's 4px caret renders at 1px and its faintest
+       bar (10% ink on green) disappears entirely; the rest smears into a
+       single blur. Detail that cannot survive the size only makes the
+       mark muddy, so it is spent here rather than kept. -->
+
+  <rect width="64" height="64" rx="14" fill="#64C07F"/>
+
+  <rect x="13" y="24" width="6" height="16" fill="#142016"/>
+
+  <rect x="27" y="24" width="12" height="16" rx="2" fill="#142016" fill-opacity="0.5"/>
+  <rect x="45" y="24" width="6" height="16" rx="2" fill="#142016" fill-opacity="0.28"/>
+</svg>

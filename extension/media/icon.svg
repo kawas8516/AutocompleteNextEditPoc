@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-labelledby="t">
+  <title id="t">Continue (OpenRouter)</title>
+
+  <!-- The mark is the product's own gesture: a text caret with suggested
+       words trailing it on one line, each fainter than the last — the way
+       ghost text trails off in the editor. No sparkles, no orb, no robot.
+
+       Moss green (#64C07F) is the brand color used across the extension
+       and the landing page. Ink (#142016) is the same near-black. -->
+
+  <rect width="64" height="64" rx="14" fill="#64C07F"/>
+
+  <!-- caret: solid, the part you control -->
+  <rect x="12" y="24" width="4" height="16" fill="#142016"/>
+
+  <!-- suggestion: three words, fading as they run ahead of the cursor -->
+  <rect x="22" y="24" width="10" height="16" rx="2" fill="#142016" fill-opacity="0.5"/>
+  <rect x="36" y="24" width="8" height="16" rx="2" fill="#142016" fill-opacity="0.3"/>
+  <rect x="48" y="24" width="12" height="16" rx="2" fill="#142016" fill-opacity="0.1"/>
+</svg>
