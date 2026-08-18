@@ -181,8 +181,7 @@ keys
 *.tsbuildinfo
 compilation.md
 
-#landing page
-/landing
+
 
 # Internal working docs (planning, process, design notes).
 # Kept locally, not published. Public docs stay tracked:
@@ -196,6 +195,9 @@ compilation.md
 /compilation.md
 /CODE_CLEANUP_INSTRUCTIONS.md
 /DEAD_CODE_DETECTION_GUIDE.md
-/.impeccable
 /.vscode
-./extension/.impeccable
+
+# Impeccable design-skill state (hook caches, snapshots). Local tooling,
+# never published. Unanchored so it matches at any depth - these dirs get
+# created wherever the skill runs (repo root, extension/, landing/, ...).
+.impeccable/
