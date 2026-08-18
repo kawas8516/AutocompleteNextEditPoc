@@ -183,3 +183,19 @@ compilation.md
 
 #landing page
 /landing
+
+# Internal working docs (planning, process, design notes).
+# Kept locally, not published. Public docs stay tracked:
+# README.md, ARCHITECTURE.md, API_REFERENCE.md, EXAMPLES.md
+/PRODUCT.md
+/prd.md
+/flow.md
+/decision.md
+/tests.md
+/not-removed.md
+/compilation.md
+/CODE_CLEANUP_INSTRUCTIONS.md
+/DEAD_CODE_DETECTION_GUIDE.md
+/.impeccable
+/.vscode
+./extension/.impeccable
