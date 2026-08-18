@@ -201,3 +201,12 @@ compilation.md
 # never published. Unanchored so it matches at any depth - these dirs get
 # created wherever the skill runs (repo root, extension/, landing/, ...).
 .impeccable/
+
+# Single-file inlined build of the landing page, generated only to preview or
+# publish it. The real site is landing/index.html plus assets/; this is a
+# 250 KB duplicate of it and must never be what GitHub Pages serves.
+landing/_preview.html
+
+# NOTE: extension/media/icon.png is generated (scripts/build-icon.js) but is
+# deliberately TRACKED - `vsce package` reads it, so a clean checkout must
+# have it without running a build step first.
