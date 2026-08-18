@@ -1,7 +1,7 @@
 @import url("./fonts.css");
 
 /* ═══════════════════════════════════════════════════════════════════
-   Runahead landing page
+   RunAhead landing page
 
    Dark is the default: the product lives inside a code editor, and the
    green reads as lichen under low light rather than terminal phosphor.
@@ -207,18 +207,14 @@ a {
   text-decoration: none;
   flex-shrink: 0;
 }
+/* The mark carries its own plate and corner radius inside the SVG, so this
+   only has to size it. `display:block` kills the inline-baseline gap that
+   would otherwise push it off-centre against the wordmark. */
 .mark-glyph {
+  display: block;
   width: 1.7rem;
   height: 1.7rem;
-  border-radius: 0.5rem;
-  background: var(--accent);
-  color: var(--accent-ink);
-  display: grid;
-  place-items: center;
-  font-family: var(--font-body);
-  font-size: var(--step--1);
-  font-weight: 700;
-  line-height: 1;
+  flex-shrink: 0;
 }
 .mark em {
   font-style: normal;

@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to **Runahead** are recorded here.
+All notable changes to **RunAhead** are recorded here.
 
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
@@ -12,7 +12,7 @@ OpenRouter model with your own API key.
 
 Built on [Continue](https://github.com/continuedev/continue)'s autocomplete and
 NextEdit engine (Apache-2.0), with the inference layer replaced by OpenRouter
-and the chat, agent, GUI, and telemetry surfaces removed. Runahead is not
+and the chat, agent, GUI, and telemetry surfaces removed. RunAhead is not
 affiliated with or endorsed by Continue Dev, Inc.
 
 > **Naming.** Pre-release builds of this extension were called
@@ -20,7 +20,7 @@ affiliated with or endorsed by Continue Dev, Inc.
 > namespace. Apache-2.0 licenses the code but explicitly not the trademark
 > (§6), so the project was renamed before publication. If you ran one of
 > those builds, everything moved to `runahead.*` and commands now read
-> "Runahead: …"; your stored API key is migrated automatically on first
+> "RunAhead: …"; your stored API key is migrated automatically on first
 > activation, so there is nothing to re-enter.
 
 ### Added
@@ -33,7 +33,7 @@ affiliated with or endorsed by Continue Dev, Inc.
   `/completions` endpoint OpenRouter does not serve.
 - **Secure API key storage.** The key lives in the OS credential store via
   `vscode.SecretStorage`. It is never written to `settings.json` and never
-  logged. Set it with the `Runahead: Set OpenRouter API Key` command, which
+  logged. Set it with the `RunAhead: Set OpenRouter API Key` command, which
   validates the key against OpenRouter before saving it.
 - **Status bar menu.** Toggle autocomplete, toggle NextEdit, change the API
   key, change the model, reset settings, or clear the completion cache without

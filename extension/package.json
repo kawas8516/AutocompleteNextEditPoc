@@ -1,6 +1,6 @@
 {
   "name": "runahead",
-  "displayName": "Runahead",
+  "displayName": "RunAhead",
   "description": "Autocomplete and NextEdit that run ahead of your cursor. Bring your own OpenRouter key and model.",
   "version": "0.1.0",
   "publisher": "kawas8516",
@@ -25,7 +25,7 @@
   "main": "./dist/extension.js",
   "contributes": {
     "configuration": {
-      "title": "Runahead",
+      "title": "RunAhead",
       "properties": {
         "runahead.enableTabAutocomplete": {
           "type": "boolean",
@@ -35,7 +35,7 @@
         "runahead.openRouter.model": {
           "type": "string",
           "default": "nvidia/nemotron-3-nano-30b-a3b:free",
-          "description": "The OpenRouter model ID used for autocomplete and NextEdit completions. Defaults to a small free-tier model so the extension works on a free OpenRouter account without credits. Autocomplete fires on nearly every keystroke, so a small, fast model usually feels better than a large, slow one. Paid models (e.g. \"anthropic/claude-3.5-sonnet\") give higher quality but require credits on your key. See https://openrouter.ai/models for the full catalog. Your API key is set separately via the \"Runahead: Set OpenRouter API Key\" command."
+          "description": "The OpenRouter model ID used for autocomplete and NextEdit completions. Defaults to a small free-tier model so the extension works on a free OpenRouter account without credits. Autocomplete fires on nearly every keystroke, so a small, fast model usually feels better than a large, slow one. Paid models (e.g. \"anthropic/claude-3.5-sonnet\") give higher quality but require credits on your key. See https://openrouter.ai/models for the full catalog. Your API key is set separately via the \"RunAhead: Set OpenRouter API Key\" command."
         },
         "runahead.nextEdit.enabled": {
           "type": "string",
@@ -63,48 +63,48 @@
     "commands": [
       {
         "command": "runahead.setOpenRouterApiKey",
-        "title": "Runahead: Set OpenRouter API Key",
-        "category": "Runahead"
+        "title": "RunAhead: Set OpenRouter API Key",
+        "category": "RunAhead"
       },
       {
         "command": "runahead.openTabAutocompleteConfigMenu",
-        "title": "Runahead: Open Autocomplete Config Menu",
-        "category": "Runahead"
+        "title": "RunAhead: Open Autocomplete Config Menu",
+        "category": "RunAhead"
       },
       {
         "command": "runahead.logAutocompleteOutcome",
-        "title": "Runahead: Log Autocomplete Outcome",
-        "category": "Runahead"
+        "title": "RunAhead: Log Autocomplete Outcome",
+        "category": "RunAhead"
       },
       {
         "command": "runahead.logNextEditOutcomeAccept",
-        "title": "Runahead: Accept NextEdit Suggestion",
-        "category": "Runahead"
+        "title": "RunAhead: Accept NextEdit Suggestion",
+        "category": "RunAhead"
       },
       {
         "command": "runahead.logNextEditOutcomeReject",
-        "title": "Runahead: Reject NextEdit Suggestion",
-        "category": "Runahead"
+        "title": "RunAhead: Reject NextEdit Suggestion",
+        "category": "RunAhead"
       },
       {
         "command": "runahead.nextEditWindow.acceptNextEditSuggestion",
-        "title": "Runahead: Accept NextEdit Window Suggestion",
-        "category": "Runahead"
+        "title": "RunAhead: Accept NextEdit Window Suggestion",
+        "category": "RunAhead"
       },
       {
         "command": "runahead.nextEditWindow.hideNextEditSuggestion",
-        "title": "Runahead: Dismiss NextEdit Window Suggestion",
-        "category": "Runahead"
+        "title": "RunAhead: Dismiss NextEdit Window Suggestion",
+        "category": "RunAhead"
       },
       {
         "command": "runahead.acceptJump",
-        "title": "Runahead: Accept Jump to Next Edit Location",
-        "category": "Runahead"
+        "title": "RunAhead: Accept Jump to Next Edit Location",
+        "category": "RunAhead"
       },
       {
         "command": "runahead.rejectJump",
-        "title": "Runahead: Reject Jump to Next Edit Location",
-        "category": "Runahead"
+        "title": "RunAhead: Reject Jump to Next Edit Location",
+        "category": "RunAhead"
       }
     ],
     "keybindings": [

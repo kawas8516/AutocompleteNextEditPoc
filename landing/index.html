@@ -46,7 +46,15 @@
 <div class="wrap">
   <header class="site-head">
     <a class="mark" href="./">
-      <span class="mark-glyph" aria-hidden="true">›</span>
+      <!-- The product mark, same geometry as extension/media/icon-small.svg:
+           caret, then two suggested words trailing off. Inline rather than
+           an <img> so it needs no extra request and inherits nothing. -->
+      <svg class="mark-glyph" viewBox="0 0 64 64" aria-hidden="true" focusable="false">
+        <rect width="64" height="64" rx="14" fill="#64C07F" />
+        <rect x="13" y="24" width="6" height="16" fill="#142016" />
+        <rect x="27" y="24" width="12" height="16" rx="2" fill="#142016" fill-opacity="0.5" />
+        <rect x="45" y="24" width="6" height="16" rx="2" fill="#142016" fill-opacity="0.28" />
+      </svg>
       <span>Run<em>Ahead</em></span>
     </a>
 
@@ -97,7 +105,7 @@
           </div>
 
           <div class="panel" role="tabpanel" id="panel-market" aria-labelledby="tab-market" tabindex="0">
-            <p>Search <b>Runahead</b> in the Extensions panel, or install it from a terminal.</p>
+            <p>Search <b>RunAhead</b> in the Extensions panel, or install it from a terminal.</p>
             <div class="cmd">
               <code><span class="prompt" aria-hidden="true">$ </span><span data-copy-text>code --install-extension kawas8516.runahead</span></code>
               <button class="copy" type="button" data-copy>
@@ -165,7 +173,7 @@
         </li>
         <li>
           <h3>Paste it into VS Code</h3>
-          <p>Run <code>Runahead: Set OpenRouter API Key</code> from the command palette. It's checked against OpenRouter before it's saved.</p>
+          <p>Run <code>RunAhead: Set OpenRouter API Key</code> from the command palette. It's checked against OpenRouter before it's saved.</p>
         </li>
         <li>
           <h3>Start typing</h3>
@@ -268,7 +276,7 @@
         </div>
         <div class="note">
           <dt>The name</dt>
-          <dd><b>Runahead execution</b> is a real processor technique: when the CPU stalls, it runs ahead of where it is to prefetch what it will probably need, and throws the work away when it guesses wrong. That is this extension, at the scale of a keystroke.</dd>
+          <dd><b>runahead execution</b> is a real processor technique: when the CPU stalls, it runs ahead of where it is to prefetch what it will probably need, and throws the work away when it guesses wrong. That is this extension, at the scale of a keystroke.</dd>
         </div>
       </dl>
     </section>

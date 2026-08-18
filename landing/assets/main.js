@@ -1,4 +1,4 @@
-/* Runahead landing page.
+/* RunAhead landing page.
    Three small behaviours: theme toggle, install tabs, copy buttons.
    No framework, no dependencies, no analytics. */
 

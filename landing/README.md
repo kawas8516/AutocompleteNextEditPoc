@@ -1,6 +1,6 @@
 # Landing page
 
-Static landing page for **Runahead**. No build step, no framework,
+Static landing page for **RunAhead**. No build step, no framework,
 no dependencies. Copy this folder into a repo and it works.
 
 ## Publish on GitHub Pages

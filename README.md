@@ -1,4 +1,4 @@
-# Runahead
+# RunAhead
 
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/kawas8516/runahead)
 [![License: Apache 2.0](https://img.shields.io/github/license/kawas8516/runahead)](LICENSE)
@@ -23,7 +23,7 @@ See [`prd.md`](prd.md) (scope), [`flow.md`](flow.md) (request/data flow), and [`
 
 1. Get an API key from [openrouter.ai/keys](https://openrouter.ai/keys).
 2. Build and install the extension (see [`extension/README.md`](extension/README.md) for full setup, settings, and commands).
-3. Run **"Runahead: Set OpenRouter API Key"** and paste it in — stored securely via VS Code's `SecretStorage`, never written to `settings.json` or logged.
+3. Run **"RunAhead: Set OpenRouter API Key"** and paste it in — stored securely via VS Code's `SecretStorage`, never written to `settings.json` or logged.
 4. (Optional) Set `runahead.openRouter.model` to any [OpenRouter model](https://openrouter.ai/models).
 5. Start typing.
 
@@ -95,9 +95,9 @@ See [`tests.md`](tests.md) for a fast essential-checks list vs. the full maintai
 
 ## License & credits
 
-Apache-2.0 — see [`LICENSE`](LICENSE). Runahead is a derivative of [Continue](https://github.com/continuedev/continue) (Copyright Continue Dev, Inc.), trimmed down to autocomplete/NextEdit only, with a VS Code extension and OpenRouter integration added on top. Original project: https://github.com/continuedev/continue · Docs: https://docs.continue.dev
+Apache-2.0 — see [`LICENSE`](LICENSE). RunAhead is a derivative of [Continue](https://github.com/continuedev/continue) (Copyright Continue Dev, Inc.), trimmed down to autocomplete/NextEdit only, with a VS Code extension and OpenRouter integration added on top. Original project: https://github.com/continuedev/continue · Docs: https://docs.continue.dev
 
-Runahead is not affiliated with or endorsed by Continue Dev, Inc. "Continue" is their name, not ours — Apache-2.0 licenses the code, not the trademark.
+RunAhead is not affiliated with or endorsed by Continue Dev, Inc. "Continue" is their name, not ours — Apache-2.0 licenses the code, not the trademark.
 
 ## Support
 

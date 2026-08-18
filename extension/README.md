@@ -1,11 +1,11 @@
-# Runahead
+# RunAhead
 
 Autocomplete and NextEdit inline completions, powered by [OpenRouter](https://openrouter.ai) with your own API key and model of choice.
 
 ## Setup
 
 1. Get an API key from [openrouter.ai/keys](https://openrouter.ai/keys).
-2. Run the command **"Runahead: Set OpenRouter API Key"** (Ctrl+Shift+P / Cmd+Shift+P) and paste it in. The key is validated immediately and stored in VS Code's secure credential storage — it is never written to `settings.json` and never logged.
+2. Run the command **"RunAhead: Set OpenRouter API Key"** (Ctrl+Shift+P / Cmd+Shift+P) and paste it in. The key is validated immediately and stored in VS Code's secure credential storage — it is never written to `settings.json` and never logged.
 3. (Optional) Set `runahead.openRouter.model` in your settings to any [OpenRouter model ID](https://openrouter.ai/models), e.g. `anthropic/claude-3.5-sonnet` (default) or `qwen/qwen-2.5-coder-32b-instruct`.
 4. Start typing — inline completions stream in as you go.
 
@@ -42,8 +42,8 @@ need it.
 
 | Command | Description |
 |---|---|
-| `Runahead: Set OpenRouter API Key` | Prompt for and securely store your OpenRouter API key. |
-| `Runahead: Open Autocomplete Config Menu` | Enable/disable autocomplete from a quick pick. |
+| `RunAhead: Set OpenRouter API Key` | Prompt for and securely store your OpenRouter API key. |
+| `RunAhead: Open Autocomplete Config Menu` | Enable/disable autocomplete from a quick pick. |
 
 ## Choosing a model
 
