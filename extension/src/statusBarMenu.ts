@@ -110,7 +110,7 @@ function buildItems(
     {
       label: "$(discard) Reset Settings",
       detail:
-        "Restore all Runahead settings to their defaults. Your API key is kept.",
+        "Restore all RunAhead settings to their defaults. Your API key is kept.",
       action: "resetSettings",
     },
     {
@@ -125,7 +125,7 @@ async function resetSettings(
   config: vscode.WorkspaceConfiguration,
 ): Promise<void> {
   const confirm = await vscode.window.showWarningMessage(
-    "Reset all Runahead settings to their defaults?",
+    "Reset all RunAhead settings to their defaults?",
     { modal: true, detail: "Your OpenRouter API key will be kept." },
     "Reset Settings",
   );
@@ -141,7 +141,7 @@ async function resetSettings(
   }
 
   vscode.window.showInformationMessage(
-    "Runahead: settings reset to defaults.",
+    "RunAhead: settings reset to defaults.",
   );
 }
 
@@ -160,14 +160,14 @@ async function resetCache(): Promise<void> {
 
   try {
     await clearCompletionCache();
-    vscode.window.showInformationMessage("Runahead: completion cache cleared.");
+    vscode.window.showInformationMessage("RunAhead: completion cache cleared.");
   } catch (e) {
     // A missing database just means nothing was ever cached - not an error
     // worth alarming the user about, but worth distinguishing from a real
     // failure.
     const message = e instanceof Error ? e.message : String(e);
     vscode.window.showWarningMessage(
-      `Runahead: could not clear the completion cache. ${message}`,
+      `RunAhead: could not clear the completion cache. ${message}`,
     );
   }
 }
@@ -213,7 +213,7 @@ export async function showStatusBarMenu(
 
   const picked = await vscode.window.showQuickPick(
     buildItems(autocompleteEnabled, nextEditSetting, model, hasApiKey),
-    { title: "Runahead" },
+    { title: "RunAhead" },
   );
   if (!picked?.action) {
     return;

@@ -79,7 +79,7 @@ function registerSetApiKeyCommand(
         valid = await validateOpenRouterApiKey(apiKey);
       } catch (e) {
         vscode.window.showErrorMessage(
-          `Runahead: Couldn't validate the OpenRouter API key (network error). Saved it anyway - it will be re-checked on first use. ${
+          `RunAhead: Couldn't validate the OpenRouter API key (network error). Saved it anyway - it will be re-checked on first use. ${
             e instanceof Error ? e.message : String(e)
           }`,
         );
@@ -89,14 +89,14 @@ function registerSetApiKeyCommand(
 
       if (!valid) {
         vscode.window.showErrorMessage(
-          "Runahead: That OpenRouter API key was rejected (401 Unauthorized). It was not saved.",
+          "RunAhead: That OpenRouter API key was rejected (401 Unauthorized). It was not saved.",
         );
         return;
       }
 
       await context.secrets.store(OPENROUTER_API_KEY_SECRET, apiKey);
       vscode.window.showInformationMessage(
-        "Runahead: OpenRouter API key validated and saved.",
+        "RunAhead: OpenRouter API key validated and saved.",
       );
     },
   );
@@ -327,7 +327,7 @@ export async function activate(context: vscode.ExtensionContext) {
   if (!hasKey) {
     vscode.window
       .showInformationMessage(
-        "Runahead: set an OpenRouter API key to enable autocomplete and NextEdit.",
+        "RunAhead: set an OpenRouter API key to enable autocomplete and NextEdit.",
         "Set API Key",
       )
       .then((choice) => {

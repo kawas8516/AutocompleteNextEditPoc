@@ -35,7 +35,7 @@ export class ContinueCompletionProvider
     if (await handleLLMError(e)) {
       return;
     }
-    let message = "Runahead Autocomplete Error";
+    let message = "RunAhead Autocomplete Error";
     if (e instanceof Error) {
       message += `: ${e.message}`;
     }

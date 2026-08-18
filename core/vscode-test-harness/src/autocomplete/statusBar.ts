@@ -17,29 +17,29 @@ const statusBarItemText = (
   error?: boolean,
 ) => {
   if (error) {
-    return "$(alert) Runahead (config error)";
+    return "$(alert) RunAhead (config error)";
   }
 
   let text: string;
   switch (status) {
     case undefined:
       if (loading) {
-        text = "$(loading~spin) Runahead";
+        text = "$(loading~spin) RunAhead";
       } else {
-        text = "Runahead";
+        text = "RunAhead";
       }
       break;
     case StatusBarStatus.Disabled:
-      text = "$(circle-slash) Runahead";
+      text = "$(circle-slash) RunAhead";
       break;
     case StatusBarStatus.Enabled:
-      text = "$(check) Runahead";
+      text = "$(check) RunAhead";
       break;
     case StatusBarStatus.Paused:
-      text = "$(debug-pause) Runahead";
+      text = "$(debug-pause) RunAhead";
       break;
     default:
-      text = "Runahead";
+      text = "RunAhead";
   }
 
   // Append Next Edit indicator if enabled.

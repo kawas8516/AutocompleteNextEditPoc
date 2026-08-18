@@ -126,8 +126,8 @@ export class RecentlyVisitedRangesService {
         (s) =>
           !currentFilepath ||
           (s.filepath !== currentFilepath &&
-            // Exclude Runahead's own output as it makes it super-hard for users to test the autocomplete feature
-            // while looking at the prompts in Runahead's output
+            // Exclude RunAhead's own output as it makes it super-hard for users to test the autocomplete feature
+            // while looking at the prompts in RunAhead's output
             !s.filepath.startsWith(
               "output:extension-output-kawas8516.runahead",
             )),
