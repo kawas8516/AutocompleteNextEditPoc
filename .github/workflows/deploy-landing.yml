@@ -1,0 +1,50 @@
+name: Deploy landing page
+
+# Publishes landing/ to GitHub Pages. The folder is plain static HTML/CSS/JS
+# with no build step, so this uploads it as-is - no Node, no install, no bundle.
+#
+# One-time setup before the first run succeeds:
+#   Settings > Pages > Build and deployment > Source: "GitHub Actions"
+# Without that, deploy-pages fails with "Get Pages site failed".
+
+on:
+  push:
+    branches: [main]
+    # Only redeploy when the site itself changes. Everything else in this repo
+    # is the extension, and a Pages deploy per extension commit is pure noise.
+    paths:
+      - "landing/**"
+      - ".github/workflows/deploy-landing.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write # deploy-pages authenticates to Pages via OIDC
+
+# Let a running deploy finish rather than cancelling it: a half-applied deploy
+# would leave the live site on an inconsistent commit.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          # Upload only the site folder, so the extension source and node_modules
+          # never reach the artifact. landing/.nojekyll ships with it and tells
+          # Pages to skip Jekyll, which would otherwise ignore any _-prefixed path.
+          path: landing
+
+      - id: deployment
+        uses: actions/deploy-pages@v4
